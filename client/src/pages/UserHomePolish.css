@@ -119,3 +119,135 @@
     animation: none;
   }
 }
+
+/* ---------- Ilustrasi hasil screening terakhir (di samping ring skor) ---------- */
+/* Gambar transparan, menempel di dasar kartu seperti sedang "mengintip" dari bawah */
+.new-dashboard .health-info {
+  flex: 1;
+  min-width: 0;
+  max-width: none;
+}
+
+.new-dashboard .health-info h2 {
+  text-wrap: balance;
+}
+
+/* Ring tampil di depan blob ilustrasi, bukan tertutup */
+.new-dashboard .health-ring {
+  z-index: 2;
+}
+
+/* Badge peringkat tetap satu baris di layar lebar */
+@media (min-width: 1301px) {
+  .new-dashboard .health-info .trend-badge {
+    padding: 6px 10px;
+    font-size: 11.5px;
+    white-space: nowrap;
+  }
+}
+
+.new-dashboard .health-mood {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  width: 250px;
+  margin: 0 -0.5rem -2rem -48px;
+  align-self: flex-end;
+  animation: homex-rise 0.6s 0.25s ease backwards;
+}
+
+.new-dashboard .health-mood-frame {
+  line-height: 0;
+}
+
+.new-dashboard .health-mood-frame img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 10px 16px rgba(27, 67, 50, 0.1));
+  animation: homex-fade 0.5s ease backwards;
+}
+
+/* Label kategori sebagai pil kecil di pojok kiri atas gambar */
+.new-dashboard .health-mood figcaption {
+  position: absolute;
+  top: -6px;
+  left: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  background: #fff;
+  box-shadow: 0 6px 16px rgba(34, 197, 94, 0.18);
+}
+
+.new-dashboard .health-mood figcaption span {
+  display: none;
+}
+
+.new-dashboard .health-mood figcaption strong {
+  font-family: Poppins, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--ink-900);
+  white-space: nowrap;
+}
+
+@keyframes homex-fade {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (min-width: 769px) {
+  .new-dashboard .health-card {
+    min-height: 240px;
+  }
+}
+
+/* Layar laptop yang lebih sempit: ilustrasi sedikit diperkecil agar teks tetap lega */
+@media (min-width: 1181px) and (max-width: 1300px) {
+  .new-dashboard .health-mood {
+    width: 200px;
+    margin-left: -40px;
+  }
+
+  .new-dashboard .health-mood figcaption {
+    left: 28px;
+  }
+}
+
+/* Lebar 1025-1180px kolom kartu terlalu sempit untuk tiga elemen: ilustrasi disembunyikan */
+@media (min-width: 1025px) and (max-width: 1180px) {
+  .new-dashboard .health-mood {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .new-dashboard .health-mood {
+    align-self: center;
+    width: 240px;
+    margin: 0 0 -1.5rem;
+  }
+
+  .new-dashboard .health-mood figcaption {
+    left: 50%;
+    transform: translateX(-50%);
+    top: -10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .new-dashboard .health-mood,
+  .new-dashboard .health-mood-frame img {
+    animation: none;
+  }
+}

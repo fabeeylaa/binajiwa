@@ -1,24 +1,16 @@
 import { useEffect, useState, useCallback } from "react";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-} from "recharts";
-import {
   Plus,
-  Flame,
   Check,
   Trash2,
   X,
-  Target,
-  CalendarCheck,
-  Sparkles,
+  Flame,
+  Droplet,
+  Moon,
+  Leaf,
+  Sprout,
 } from "lucide-react";
-import "../pages/Dashboard.css";
+import "./Dashboard.css";
 import "./HabitsPolish.css";
 
 const SUGGESTIONS = [
@@ -30,6 +22,20 @@ const SUGGESTIONS = [
   "Kurangi scroll sebelum tidur",
 ];
 
+// Ikon bergantian per habit, warna hijau selaras dashboard (tidak ada kolom kategori di DB)
+const TONES = [
+  { Icon: Droplet, bg: "var(--sage-tint)", fg: "var(--forest)" },
+  { Icon: Moon, bg: "var(--soft-sage)", fg: "var(--forest)" },
+  { Icon: Leaf, bg: "var(--white)", fg: "var(--forest)" },
+];
+
+function progressMessage(done, total) {
+  if (total === 0) return "Belum ada habit. Pilih satu di samping untuk mulai.";
+  if (done === 0) return "Mulai dari satu habit kecil.";
+  if (done < total) return "Bagus, lanjutkan pelan-pelan.";
+  return "Semua selesai. Terima kasih sudah merawat dirimu.";
+}
+
 function UserHabits() {
   const [habits, setHabits] = useState([]);
   const [weekly, setWeekly] = useState([]);
@@ -38,6 +44,8 @@ function UserHabits() {
   const [newTitle, setNewTitle] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [adding, setAdding] = useState(null);
+  const [freshId, setFreshId] = useState(null); // habit yang baru ditambahkan
+  const [popId, setPopId] = useState(null); // habit yang baru saja dicentang
   // Jumlah hari berturut-turut agar api streak menyala (diatur server)
   const [streakTarget, setStreakTarget] = useState(7);
 
@@ -71,6 +79,10 @@ function UserHabits() {
         h.id === id ? { ...h, logged_today: !currentlyLogged } : h,
       ),
     );
+    if (!currentlyLogged) {
+      setPopId(id);
+      setTimeout(() => setPopId(null), 1000);
+    }
     try {
       const res = await fetch(`/api/habits/${id}/log`, {
         method: currentlyLogged ? "DELETE" : "POST",
@@ -79,7 +91,7 @@ function UserHabits() {
       });
       if (!res.ok) throw new Error("Gagal menyimpan centang");
       await fetchData();
-      window.dispatchEvent(new CustomEvent('habits:updated'));
+      window.dispatchEvent(new CustomEvent("habits:updated"));
     } catch (err) {
       console.error(err);
       setHabits((prev) =>
@@ -124,6 +136,8 @@ function UserHabits() {
         },
         ...prev,
       ]);
+      setFreshId(data.habit.id);
+      setTimeout(() => setFreshId(null), 1600);
     }
   };
 
@@ -157,9 +171,10 @@ function UserHabits() {
 
   const doneCount = habits.filter((h) => h.logged_today).length;
   const totalHabits = habits.length;
-  const progressPct =
-    totalHabits > 0 ? Math.round((doneCount / totalHabits) * 100) : 0;
-  const maxWeek = Math.max(...weekly.map((d) => d.value), 1);
+  const pct = totalHabits > 0 ? doneCount / totalHabits : 0;
+  const daysLogged = weekly.filter((d) => d.value > 0).length;
+  const bestStreak = Math.max(0, ...habits.map((h) => h.streak || 0));
+  const chartMax = Math.max(totalHabits, ...weekly.map((d) => d.value), 1);
 
   const existingTitles = new Set(
     habits.map((h) => h.title.trim().toLowerCase()),
@@ -168,163 +183,257 @@ function UserHabits() {
     (s) => !existingTitles.has(s.toLowerCase()),
   );
 
+  const todayLabel = new Date().toLocaleDateString("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+
+  const R = 54;
+  const C = 2 * Math.PI * R;
+
   return (
-    <div className="tab-panel">
-      {/* Stats */}
-      <div className="habit-stats">
-        <div className="habit-stat-card">
-          <Target size={18} />
-          <div>
-            <div className="habit-stat-val">{totalHabits}</div>
-            <div className="habit-stat-lbl">Habit Aktif</div>
-          </div>
-        </div>
-        <div className="habit-stat-card">
-          <CalendarCheck size={18} />
-          <div>
-            <div className="habit-stat-val">{progressPct}%</div>
-            <div className="habit-stat-lbl">Progress Hari Ini</div>
-          </div>
-        </div>
-        <div className="habit-stat-card">
-          <Flame size={18} />
-          <div>
-            <div className="habit-stat-val">
-              {doneCount}/{totalHabits}
-            </div>
-            <div className="habit-stat-lbl">Selesai</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Chart */}
-      {weekly.length > 0 && (
-        <div className="card habit-chart-card">
-          <h3>Tren 7 Hari Terakhir</h3>
-          <p className="habit-chart-sub">
-            Jumlah habit yang dicentang per hari
+    <div className="tab-panel habits-page">
+      <header className="habits-head">
+        <div>
+          <div className="habits-date">{todayLabel}</div>
+          <h2 className="habits-title">Habit Tracker</h2>
+          <p className="habits-sub">
+            Pelan-pelan saja. Satu langkah kecil hari ini sudah cukup.
           </p>
-          <div className="habit-chart-wrap">
-            <ResponsiveContainer width="100%" height={180}>
-              <BarChart
-                data={weekly}
-                margin={{ top: 8, right: 8, left: 8, bottom: 0 }}
-              >
-                <XAxis
-                  dataKey="day"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 12, fill: "var(--on-surface-variant)" }}
-                />
-                <YAxis hide domain={[0, Math.max(totalHabits, maxWeek, 1)]} />
-                <Tooltip
-                  cursor={{ fill: "rgba(47,75,60,0.06)" }}
-                  formatter={(v) => [`${v} habit`, "Dicentang"]}
-                />
-                <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={36}>
-                  {weekly.map((entry, i) => (
-                    <Cell
-                      key={i}
-                      fill={entry.value > 0 ? "#2F4B3C" : "#e5e7eb"}
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
         </div>
-      )}
+        <button
+          type="button"
+          className="habits-btn"
+          onClick={() => setShowModal(true)}
+        >
+          <Plus size={18} /> Buat Habit Sendiri
+        </button>
+      </header>
 
-      {/* Daily Checklist */}
-      <div className="card habit-list-card">
-        <div className="habit-list-header">
-          <div>
-            <h3>Daftar Hari Ini</h3>
-            <p className="hint">
-              {doneCount} dari {totalHabits} selesai
-            </p>
-          </div>
-          <button
-            className="btn btn-primary btn-sm"
-            onClick={() => setShowModal(true)}
-          >
-            <Plus size={16} /> Buat Sendiri
-          </button>
-        </div>
-
-        {availableSuggestions.length > 0 && (
-          <div className="habit-suggest">
-            <p className="habit-suggest-title">
-              <Sparkles size={14} /> Rekomendasi: sekali klik langsung
-              ditambahkan
-            </p>
-            <div className="habit-suggest-list">
-              {availableSuggestions.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  className="habit-suggest-chip"
-                  disabled={adding !== null}
-                  onClick={() => quickAdd(s)}
-                >
-                  {adding === s ? "Menambahkan..." : `+ ${s}`}
-                </button>
-              ))}
+      <div className="habits-grid">
+        {/* ===== Kolom kiri ===== */}
+        <section className="habits-col">
+          <div className="habits-card">
+            <div className="habits-card-head">
+              <h3>Daftar Hari Ini</h3>
+              <span className="habits-muted">
+                {doneCount} dari {totalHabits} selesai
+              </span>
             </div>
-          </div>
-        )}
 
-        {habits.length === 0 ? (
-          <div className="habit-empty">
-            <Flame size={40} strokeWidth={1.2} />
-            <p>Belum ada habit. Pilih rekomendasi di atas atau buat sendiri.</p>
-          </div>
-        ) : (
-          <div className="habit-items">
-            {habits.map((habit) => {
-              const streak = habit.streak || 0;
-              const lit = Boolean(habit.streak_active);
-              return (
-                <div
-                  key={habit.id}
-                  className={`habit-item ${habit.logged_today ? "done" : ""}`}
-                >
-                  <button
-                    className={`habit-check ${habit.logged_today ? "done" : ""}`}
-                    onClick={() => toggleHabit(habit.id, habit.logged_today)}
-                  >
-                    {habit.logged_today && <Check size={16} />}
-                  </button>
-                  <div className="habit-info">
-                    <div className="habit-title">{habit.title}</div>
-                    <div className="habit-meta">
-                      <span className="habit-freq">Harian</span>
-                      <span className="habit-sep">{"\u00B7"}</span>
+            {totalHabits === 0 ? (
+              <div className="habits-empty">
+                <Sprout size={36} strokeWidth={1.4} />
+                <p>Belum ada habit. Pilih rekomendasi di bawah atau buat sendiri.</p>
+              </div>
+            ) : (
+              <ul className="habits-list">
+                {habits.map((habit, i) => {
+                  const { Icon, bg, fg } = TONES[i % TONES.length];
+                  const streak = habit.streak || 0;
+                  const lit = Boolean(habit.streak_active);
+                  return (
+                    <li
+                      key={habit.id}
+                      className={`habits-habit ${habit.logged_today ? "is-done" : ""} ${freshId === habit.id ? "is-new" : ""} ${popId === habit.id ? "is-pop" : ""}`}
+                    >
+                      <button
+                        type="button"
+                        className="habits-check"
+                        aria-pressed={Boolean(habit.logged_today)}
+                        aria-label={`Tandai ${habit.title} ${habit.logged_today ? "belum selesai" : "selesai"}`}
+                        onClick={() => toggleHabit(habit.id, habit.logged_today)}
+                      >
+                        <Check size={20} strokeWidth={3} />
+                      </button>
+                      <div className="habits-icon" style={{ background: bg, color: fg }}>
+                        <Icon size={22} />
+                      </div>
+                      <div className="habits-habit-text">
+                        <div className="habits-habit-name">{habit.title}</div>
+                        <div className="habits-habit-meta">
+                          <span>Harian</span>
+                          <span aria-hidden="true">&middot;</span>
+                          <span>{habit.week_count || 0}/7 minggu ini</span>
+                        </div>
+                      </div>
                       <span
-                        className={`habit-streak-mini ${lit ? "lit" : ""}`}
+                        className={`habits-streak-pill ${lit ? "is-lit" : ""}`}
                         title={
                           lit
                             ? `Streak ${streak} hari berturut-turut`
                             : `Selesaikan ${streakTarget} hari berturut-turut untuk menyalakan api`
                         }
                       >
-                        <Flame size={11} />{" "}
-                        {lit ? `${streak} hari` : `${streak}/${streakTarget} hari`}
+                        <Flame size={13} />
+                        {lit ? `${streak} hari` : `${streak}/${streakTarget}`}
+                      </span>
+                      <button
+                        type="button"
+                        className="habits-delete"
+                        onClick={() => deleteHabit(habit.id)}
+                        aria-label={`Hapus ${habit.title}`}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+
+          {availableSuggestions.length > 0 && (
+            <div className="habits-card">
+              <h3>Tambah cepat</h3>
+              <p className="habits-muted habits-note">
+                Sekali klik, langsung masuk ke daftar hari ini.
+              </p>
+              <div className="habits-chips">
+                {availableSuggestions.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    className="habits-chip"
+                    disabled={adding !== null}
+                    onClick={() => quickAdd(s)}
+                  >
+                    {adding === s ? "Menambahkan..." : `+ ${s}`}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {weekly.length > 0 && (
+            <div className="habits-card habits-card--chart">
+              <div className="habits-card-head">
+                <div>
+                  <h3>Tren 7 Hari Terakhir</h3>
+                  <p className="habits-muted habits-note habits-note--tight">
+                    Jumlah habit yang dicentang per hari
+                  </p>
+                </div>
+                <span className="habits-muted habits-strong">
+                  Maks. {chartMax} habit per hari
+                </span>
+              </div>
+              <div
+                className="habits-bars"
+                role="img"
+                aria-label={`Grafik batang: ${weekly.map((d) => `${d.day} ${d.value}`).join(", ")}`}
+              >
+                {weekly.map((d, i) => (
+                  <div
+                    key={d.date}
+                    className={`habits-bar-col ${i === weekly.length - 1 ? "is-today" : ""}`}
+                  >
+                    <span className={`habits-bar-num ${d.value === 0 ? "is-zero" : ""}`}>
+                      {d.value}
+                    </span>
+                    <span
+                      className={`habits-bar ${d.value === 0 ? "is-zero" : ""}`}
+                      style={
+                        d.value > 0
+                          ? { height: `${(d.value / chartMax) * 110}px` }
+                          : undefined
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
+              <div className="habits-bar-labels">
+                {weekly.map((d, i) => (
+                  <span
+                    key={d.date}
+                    className={i === weekly.length - 1 ? "is-today" : ""}
+                  >
+                    {i === weekly.length - 1 ? `${d.day} · hari ini` : d.day}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* ===== Kolom kanan ===== */}
+        <aside className="habits-col">
+          <div className="habits-card habits-progress">
+            <div className={`habits-ring ${totalHabits > 0 && pct === 1 ? "is-complete" : ""}`}>
+              <svg
+                width="132"
+                height="132"
+                viewBox="0 0 132 132"
+                role="img"
+                aria-label={`Progress hari ini ${doneCount} dari ${totalHabits}`}
+              >
+                <circle cx="66" cy="66" r={R} className="habits-ring-track" />
+                <circle
+                  cx="66"
+                  cy="66"
+                  r={R}
+                  className="habits-ring-fill"
+                  strokeDasharray={C}
+                  strokeDashoffset={C * (1 - pct)}
+                  transform="rotate(-90 66 66)"
+                />
+              </svg>
+              <div className="habits-ring-label">
+                <strong>
+                  {doneCount}/{totalHabits}
+                </strong>
+                <span>selesai</span>
+              </div>
+            </div>
+            <p className="habits-progress-msg">
+              {progressMessage(doneCount, totalHabits)}
+            </p>
+            <p className="habits-muted">Tidak ada yang tertinggal. Hari ini baru dimulai.</p>
+          </div>
+
+          {weekly.length > 0 && (
+            <div className="habits-card">
+              <div className="habits-card-head habits-card-head--tight">
+                <h3 className="habits-h-sm">Minggu ini</h3>
+                <span className="habits-muted">{daysLogged} hari tercatat</span>
+              </div>
+              <div className="habits-week">
+                {weekly.map((d, i) => {
+                  const isToday = i === weekly.length - 1;
+                  return (
+                    <div key={d.date} className="habits-week-day">
+                      <span className={isToday ? "is-today" : ""}>{d.day}</span>
+                      <span
+                        className={`habits-week-dot ${d.value > 0 ? "is-on" : ""} ${isToday ? "is-today" : ""}`}
+                      >
+                        {d.value > 0 && <Check size={16} strokeWidth={3} />}
                       </span>
                     </div>
-                  </div>
-                  <button
-                    className="habit-delete"
-                    onClick={() => deleteHabit(habit.id)}
-                    title="Hapus"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              );
-            })}
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <div className="habits-streak">
+            <div className="habits-streak-icon">
+              <Leaf size={22} />
+            </div>
+            <div>
+              <div className="habits-streak-title">
+                {bestStreak > 0
+                  ? `${bestStreak} hari beruntun`
+                  : "Streak baru dimulai hari ini"}
+              </div>
+              <div className="habits-muted">
+                {bestStreak > 0
+                  ? "Streak habit terpanjangmu saat ini."
+                  : "Selesaikan satu habit untuk memulainya."}
+              </div>
+            </div>
           </div>
-        )}
+        </aside>
       </div>
 
       {/* Modal Buat Sendiri */}

@@ -1,180 +1,272 @@
-/* Polesan Habit Tracker: menimpa gaya habit-* dari Dashboard.css (spesifisitas lebih tinggi, tanpa !important) */
-@keyframes habx-rise {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
+/* Habit Tracker: tampilan halaman habit.
+   Palet dan gaya kartu disamakan dengan Beranda: hijau sage, kartu putih rounded,
+   gradasi lembut, ring dengan halo putih. Variabel dari index.css. Gaya modal ada di Dashboard.css. */
+
+.habits-page {
+  --habits-accent: var(--sage, #1fa25a);
+  --habits-accent-dark: #17803f;
+  --habits-ink: var(--forest, #1b4332);
+  --habits-muted: var(--muted, #5f7a6c);
+  --habits-line: var(--line, #d8eedf);
+  --habits-radius: 28px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  color: var(--habits-ink);
+}
+.habits-page *, .habits-page *::before, .habits-page *::after { box-sizing: border-box; }
+.habits-page button { font-family: inherit; cursor: pointer; }
+.habits-page :focus-visible { outline: 3px solid var(--forest, #1b4332); outline-offset: 2px; }
+.habits-page h2, .habits-page h3, .habits-page strong { font-family: "Poppins", "Plus Jakarta Sans", system-ui, sans-serif; }
+
+/* ---------- Header ---------- */
+.habits-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.habits-date { font-size: 14px; font-weight: 600; color: var(--habits-muted); text-transform: capitalize; }
+.habits-title { margin: 4px 0 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+.habits-sub { margin: 6px 0 0; font-size: 16px; color: var(--habits-muted); }
+
+.habits-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  min-height: 48px; padding: 0 22px; border: 0; border-radius: 999px;
+  background: var(--habits-accent); color: #fff; font-size: 15px; font-weight: 700;
+  box-shadow: 0 6px 16px rgba(31, 162, 90, 0.28);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.habits-btn svg { transition: transform 0.3s ease; }
+.habits-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(31, 162, 90, 0.36); }
+.habits-btn:hover svg { transform: rotate(90deg); }
+.habits-btn:active { transform: translateY(0) scale(0.95); box-shadow: 0 2px 8px rgba(31, 162, 90, 0.3); }
+
+/* ---------- Layout & kartu ---------- */
+.habits-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; align-items: start; }
+.habits-col { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+
+.habits-card {
+  position: relative; overflow: hidden;
+  background: var(--white, #fff); border-radius: var(--habits-radius); padding: 28px;
+  box-shadow: var(--shadow-card, 0 4px 12px rgba(27, 67, 50, 0.06));
+}
+.habits-card h3 { margin: 0; font-size: 18px; font-weight: 700; }
+.habits-card .habits-h-sm { font-size: 16px; }
+.habits-card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+.habits-card-head--tight { margin-bottom: 8px; }
+.habits-muted { margin: 0; font-size: 14px; color: var(--habits-muted); }
+.habits-note { margin: 4px 0 16px; }
+.habits-note--tight { margin-bottom: 0; }
+.habits-strong { font-size: 13px; font-weight: 600; }
+
+/* Garis gradasi di atas kartu grafik, sama seperti "Aktivitas Mingguan" di Beranda */
+.habits-card--chart::before {
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  background: linear-gradient(90deg, var(--habits-accent), var(--soft-sage, #a8e0be));
 }
 
-@keyframes habx-pop {
-  0% {
-    transform: scale(0.8);
-  }
-  60% {
-    transform: scale(1.12);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
+.habits-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px 0; color: var(--habits-muted); text-align: center; }
+.habits-empty p { margin: 0; font-size: 15px; }
 
-.tab-panel .habit-stats .habit-stat-card,
-.tab-panel .habit-chart-card,
-.tab-panel .habit-list-card {
-  animation: habx-rise 0.5s ease backwards;
-}
-
-.tab-panel .habit-stats .habit-stat-card:nth-child(2) {
-  animation-delay: 0.06s;
-}
-
-.tab-panel .habit-stats .habit-stat-card:nth-child(3) {
-  animation-delay: 0.12s;
-}
-
-.tab-panel .habit-chart-card {
-  animation-delay: 0.18s;
-}
-
-.tab-panel .habit-list-card {
-  animation-delay: 0.26s;
-}
-
-.tab-panel .habit-stat-card {
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.tab-panel .habit-stat-card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-float);
-}
-
-.tab-panel .habit-stat-card svg {
-  box-sizing: border-box;
-  width: 44px;
-  height: 44px;
-  padding: 11px;
-  border-radius: 14px;
-}
-
-.tab-panel .habit-stat-card:nth-child(1) svg {
-  background: var(--mint-100);
-  color: var(--forest);
-}
-
-.tab-panel .habit-stat-card:nth-child(2) svg {
-  background: #e0f2fe;
-  color: #0369a1;
-}
-
-.tab-panel .habit-stat-card:nth-child(3) svg {
-  background: #fef3c7;
-  color: #b45309;
-}
-
-.tab-panel .habit-stat-val {
-  font-size: 26px;
-}
-
-.tab-panel .habit-chart-card {
+/* ---------- Daftar habit ---------- */
+.habits-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.habits-habit {
   position: relative;
-  overflow: hidden;
+  display: flex; align-items: center; gap: 16px; padding: 16px 18px;
+  border-radius: 22px; background: var(--ivory, #eaf8ef); border: 1px solid var(--habits-line);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.habits-habit.is-done {
+  background: var(--sage-tint, #d5f2e0);
+  box-shadow: inset 5px 0 0 var(--habits-accent);
 }
 
-.tab-panel .habit-chart-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, var(--primary), var(--mint-300));
+.habits-check {
+  position: relative;
+  width: 44px; height: 44px; flex: none; padding: 0; border-radius: 50%;
+  border: 2.5px solid var(--habits-accent); background: #fff; color: transparent;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: background 0.18s, color 0.18s, transform 0.18s;
+}
+.habits-check::after {
+  content: ""; position: absolute; inset: -3px; border-radius: 50%;
+  border: 3px solid var(--habits-accent); opacity: 0; pointer-events: none;
+}
+.habits-habit:not(.is-done) .habits-check:hover { background: var(--sage-tint, #d5f2e0); transform: scale(1.08); }
+.habits-check:active { transform: scale(0.92); }
+.habits-habit.is-done .habits-check { background: var(--habits-accent); color: #fff; }
+
+.habits-icon { width: 44px; height: 44px; flex: none; border-radius: 14px; display: flex; align-items: center; justify-content: center; }
+.habits-habit-text { flex: 1; min-width: 0; }
+.habits-habit-name { font-size: 16px; font-weight: 700; overflow-wrap: anywhere; }
+.habits-habit.is-done .habits-habit-name {
+  text-decoration: line-through;
+  text-decoration-color: var(--habits-ink);
+  text-decoration-thickness: 2px;
+}
+.habits-habit-meta { display: flex; gap: 6px; font-size: 13px; color: var(--habits-muted); margin-top: 2px; }
+
+/* Pil streak: netral, saat menyala memakai warna peach dari palet */
+.habits-streak-pill {
+  display: inline-flex; align-items: center; gap: 4px; flex: none;
+  padding: 5px 11px; border-radius: 999px; font-size: 12px; font-weight: 700;
+  background: #fff; color: var(--habits-muted); border: 1px solid var(--habits-line);
+  transition: transform 0.2s ease;
+}
+.habits-streak-pill.is-lit {
+  background: var(--peach, #fdebdd); color: #9a4a00; border-color: #f5cfa8;
+  box-shadow: 0 3px 10px rgba(233, 184, 114, 0.4);
+}
+.habits-streak-pill.is-lit svg {
+  fill: #f59e42; stroke: #c2410c;
+  animation: habits-flicker 1.4s ease-in-out infinite; transform-origin: 50% 90%;
 }
 
-.tab-panel .habit-chart-wrap .recharts-bar-rectangle path[fill='#2F4B3C'] {
-  fill: var(--primary);
+.habits-delete {
+  width: 44px; height: 44px; flex: none; border: 0; border-radius: 12px;
+  background: transparent; color: var(--habits-muted);
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.habits-delete:hover { background: #fff; color: var(--error, #ba1a1a); }
+
+/* ---------- Rekomendasi ---------- */
+.habits-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.habits-chip {
+  display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px;
+  border-radius: 999px; border: 1px solid var(--habits-line); background: #fff;
+  color: var(--habits-ink); font-size: 14px; font-weight: 600;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+.habits-chip:hover:not(:disabled) {
+  transform: translateY(-2px); background: var(--ivory, #eaf8ef);
+  border-color: var(--habits-accent); box-shadow: 0 6px 14px rgba(31, 162, 90, 0.18);
+}
+.habits-chip:active:not(:disabled) { transform: scale(0.94); }
+.habits-chip:disabled { opacity: 0.6; cursor: wait; }
+
+/* ---------- Grafik: batang pill seperti "Aktivitas Mingguan" ---------- */
+.habits-bars { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; height: 170px; }
+.habits-bar-col {
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px;
+  width: 100%; max-width: 44px; margin: 0 auto; height: 100%;
+  background: var(--ivory, #eaf8ef); border-radius: 999px; overflow: hidden;
+}
+.habits-bar-num { font-size: 13px; font-weight: 700; }
+.habits-bar-num.is-zero { color: #7a9185; margin-bottom: 14px; }
+.habits-bar { width: 100%; border-radius: 999px; background: var(--soft-sage, #a8e0be); transition: height 0.3s ease; }
+.habits-bar.is-zero { display: none; }
+.habits-bar-col.is-today .habits-bar { background: linear-gradient(180deg, var(--habits-accent), var(--habits-accent-dark)); }
+.habits-bar-labels {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; margin-top: 12px;
+  text-align: center; font-size: 13px; color: var(--habits-muted);
+}
+.habits-bar-labels .is-today { font-weight: 800; color: var(--habits-ink); }
+
+/* ---------- Kartu progress: gradasi lembut + ring dengan halo putih ---------- */
+.habits-progress {
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  background: linear-gradient(145deg, #fff 0%, var(--ivory, #eaf8ef) 45%, var(--sage-tint, #d5f2e0) 100%);
+}
+.habits-progress::before, .habits-progress::after {
+  content: ""; position: absolute; border-radius: 50%; background: var(--sage-tint, #d5f2e0); opacity: 0.7; pointer-events: none;
+}
+.habits-progress::before { width: 150px; height: 150px; top: -60px; right: -50px; }
+.habits-progress::after { width: 120px; height: 120px; bottom: -70px; left: -40px; opacity: 0.5; }
+.habits-progress > * { position: relative; z-index: 1; }
+
+.habits-ring {
+  position: relative; width: 150px; height: 150px; border-radius: 50%;
+  background: #fff; box-shadow: 0 10px 28px rgba(31, 162, 90, 0.22);
+  display: grid; place-items: center;
+}
+.habits-ring-track { fill: none; stroke: var(--soft-sage, #a8e0be); stroke-width: 14; }
+.habits-ring-fill { fill: none; stroke: var(--habits-accent); stroke-width: 14; stroke-linecap: round; transition: stroke-dashoffset 0.5s ease; }
+.habits-ring-label { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.habits-ring-label strong { font-size: 28px; font-weight: 700; }
+.habits-ring-label span { font-size: 12px; color: var(--habits-muted); }
+.habits-progress-msg { margin: 18px 0 4px; font-size: 15px; font-weight: 600; }
+.habits-ring.is-complete { animation: habits-ring-glow 2.2s ease-in-out infinite; }
+
+/* ---------- Week strip ---------- */
+.habits-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; }
+.habits-week-day { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.habits-week-day > span:first-child { font-size: 12px; color: var(--habits-muted); }
+.habits-week-day > span.is-today { font-weight: 800; color: var(--habits-ink); }
+.habits-week-dot {
+  width: 32px; height: 32px; border-radius: 50%; background: var(--sage-tint, #d5f2e0); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+}
+.habits-week-dot.is-on { background: var(--habits-accent); }
+.habits-week-dot.is-today { border: 2.5px solid var(--habits-accent); background: #fff; }
+.habits-week-dot.is-today.is-on { background: var(--habits-accent); }
+
+/* ---------- Streak ---------- */
+.habits-streak {
+  display: flex; align-items: center; gap: 14px; padding: 22px 28px;
+  border-radius: var(--habits-radius);
+  background: linear-gradient(135deg, var(--sage-tint, #d5f2e0), var(--soft-sage, #a8e0be));
+}
+.habits-streak-icon {
+  width: 44px; height: 44px; flex: none; border-radius: 14px; background: #fff; color: var(--habits-accent);
+  display: flex; align-items: center; justify-content: center;
+}
+.habits-streak-title { font-size: 15px; font-weight: 700; }
+
+/* ---------- Modal ---------- */
+.habits-page .habit-modal-overlay { animation: habits-fade 0.2s ease-out; }
+.habits-page .habit-modal { animation: habits-modal-in 0.35s cubic-bezier(0.2, 1.1, 0.3, 1); }
+.habits-page .habit-modal .btn-primary { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+.habits-page .habit-modal .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(31, 162, 90, 0.3); }
+.habits-page .habit-modal .btn-primary:active:not(:disabled) { transform: scale(0.96); }
+
+/* ---------- Efek: habit baru, centang, streak ---------- */
+.habits-habit.is-new { animation: habits-slide-in 0.55s cubic-bezier(0.2, 1.1, 0.3, 1), habits-glow-out 1.6s ease-out; }
+
+.habits-habit.is-pop { animation: habits-row-pulse 0.7s ease-out; }
+.habits-habit.is-pop .habits-check { animation: habits-check-pop 0.5s cubic-bezier(0.2, 1.7, 0.4, 1); }
+.habits-habit.is-pop .habits-check::after { animation: habits-ring-burst 0.7s ease-out; }
+.habits-habit.is-pop .habits-check svg { animation: habits-tick-in 0.4s 0.08s cubic-bezier(0.2, 1.7, 0.4, 1) backwards; }
+.habits-habit.is-pop .habits-streak-pill { animation: habits-bump 0.7s 0.15s cubic-bezier(0.2, 1.7, 0.4, 1); }
+
+@keyframes habits-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes habits-modal-in { 0% { opacity: 0; transform: translateY(24px) scale(0.92); } 100% { opacity: 1; transform: none; } }
+@keyframes habits-slide-in {
+  0% { opacity: 0; transform: translateY(-18px) scale(0.95); }
+  60% { opacity: 1; transform: translateY(3px) scale(1.01); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes habits-glow-out {
+  0% { background: #bfeccf; box-shadow: 0 0 0 0 rgba(31, 162, 90, 0.55); }
+  100% { box-shadow: 0 0 0 16px rgba(31, 162, 90, 0); }
+}
+@keyframes habits-row-pulse {
+  0% { box-shadow: inset 5px 0 0 var(--habits-accent), 0 0 0 0 rgba(31, 162, 90, 0.45); }
+  100% { box-shadow: inset 5px 0 0 var(--habits-accent), 0 0 0 14px rgba(31, 162, 90, 0); }
+}
+@keyframes habits-check-pop { 0% { transform: scale(0.7); } 55% { transform: scale(1.35); } 100% { transform: scale(1); } }
+@keyframes habits-ring-burst { 0% { opacity: 0.9; transform: scale(0.9); } 100% { opacity: 0; transform: scale(2.1); } }
+@keyframes habits-tick-in { 0% { transform: scale(0) rotate(-40deg); } 100% { transform: scale(1) rotate(0); } }
+@keyframes habits-bump { 0% { transform: scale(1); } 45% { transform: scale(1.4) rotate(-4deg); } 100% { transform: scale(1); } }
+@keyframes habits-flicker {
+  0%, 100% { transform: scale(1) rotate(0); }
+  30% { transform: scale(1.12, 1.2) rotate(-5deg); }
+  60% { transform: scale(0.95, 1.05) rotate(4deg); }
+}
+@keyframes habits-ring-glow {
+  0%, 100% { box-shadow: 0 10px 28px rgba(31, 162, 90, 0.22), 0 0 0 0 rgba(31, 162, 90, 0.35); }
+  50% { box-shadow: 0 10px 28px rgba(31, 162, 90, 0.22), 0 0 0 14px rgba(31, 162, 90, 0); }
 }
 
-.tab-panel .habit-chart-wrap .recharts-bar-rectangle:hover path {
-  opacity: 0.85;
+/* ---------- Responsif ---------- */
+@media (max-width: 960px) {
+  .habits-grid { grid-template-columns: 1fr; }
 }
-
-.tab-panel .habit-list-card {
-  overflow: hidden;
-}
-
-.tab-panel .habit-list-header {
-  background: linear-gradient(135deg, var(--mint-100), var(--surface));
-}
-
-.tab-panel .habit-item.done {
-  background: rgba(34, 197, 94, 0.05);
-}
-
-.tab-panel .habit-check.done {
-  animation: habx-pop 0.3s ease;
-}
-
-.tab-panel .habit-streak-mini {
-  font-weight: 600;
-  color: var(--on-surface-variant);
-  opacity: 0.75;
-  transition:
-    color 0.2s ease,
-    opacity 0.2s ease;
-}
-
-/* Api streak menyala setelah target hari berturut-turut tercapai */
-.tab-panel .habit-streak-mini.lit {
-  color: #ea580c;
-  opacity: 1;
-}
-
-.tab-panel .habit-streak-mini.lit svg {
-  fill: #fb923c;
-  filter: drop-shadow(0 0 4px rgba(251, 146, 60, 0.7));
-  animation: habx-flame 1.4s ease-in-out infinite;
-}
-
-@keyframes habx-flame {
-  0%,
-  100% {
-    transform: scale(1) rotate(0deg);
-  }
-  50% {
-    transform: scale(1.2) rotate(-4deg);
-  }
-}
-
-.tab-panel .habit-suggest {
-  background: var(--surface-container-low);
-  border-bottom: 1px solid var(--outline-variant);
-}
-
-.tab-panel .habit-suggest-chip {
-  transition:
-    transform 0.15s ease,
-    background 0.15s ease,
-    box-shadow 0.15s ease;
-}
-
-.tab-panel .habit-suggest-chip:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.18);
+@media (max-width: 560px) {
+  .habits-card { padding: 20px; }
+  .habits-habit { flex-wrap: wrap; }
+  .habits-habit-text { flex-basis: calc(100% - 140px); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tab-panel .habit-stats .habit-stat-card,
-  .tab-panel .habit-chart-card,
-  .tab-panel .habit-list-card,
-  .tab-panel .habit-check.done,
-  .tab-panel .habit-streak-mini.lit svg {
-    animation: none;
+  .habits-page *, .habits-page *::before, .habits-page *::after {
+    animation: none !important;
+    transition: none !important;
   }
 }

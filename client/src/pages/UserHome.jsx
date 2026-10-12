@@ -4,6 +4,7 @@ import './UserHomePolish.css';
 import { useNavigate, Link } from 'react-router-dom';
 import { Apple, Brain, Activity, Moon, BookOpen } from 'lucide-react';
 import ProgressRing from '../components/ProgressRing';
+import { getScreeningMood } from '../utils/screeningMood';
 import { categoryLabel } from '../utils/articleCategories';
 
 // Habit icon components (SVG inline)
@@ -159,7 +160,8 @@ function UserHome({ user }) {
   const maxWeek = Math.max(...weekData.map(d => d.value), 1);
 
   const healthScore = summary?.healthScore ?? 85;
-
+  const mood = getScreeningMood(summary?.lastScreening);
+  const streak = summary?.habits?.streak ?? 0;
   const displayName = (user?.name || user?.username || '').trim() || 'Teman Sehat';
   const firstName = displayName.split(' ')[0];
   const greeting = (() => {
@@ -307,6 +309,23 @@ function UserHome({ user }) {
             <div className="health-ring">
               <ProgressRing value={healthScore} total={100} size={140} stroke={14} />
             </div>
+            {mood && (
+              <figure className="health-mood">
+                <div className="health-mood-frame">
+                  <img
+                    key={mood.level}
+                    src={mood.src}
+                    width="400"
+                    height="447"
+                    alt={`Ilustrasi hasil screening terakhir: ${summary.lastScreening.category_label}`}
+                  />
+                </div>
+                <figcaption>
+                  <span>Hasil terakhir</span>
+                  <strong>{summary.lastScreening.category_label}</strong>
+                </figcaption>
+              </figure>
+            )}
           </div>
         </div>
 
