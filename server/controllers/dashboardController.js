@@ -154,6 +154,14 @@ export const getDashboardSummary = async (req, res) => {
     const screeningBonus = lastScreening ? 10 : 0;
     const healthScore = Math.min(100, Math.round(progressPct * 0.6 + streakBonus + screeningBonus + 15));
 
+    const habitsList = habits.slice(0, 4).map(h => ({
+      id: h.id,
+      title: h.title,
+      logged_today: h.logged_today,
+      streak: h.streak,
+      streak_active: h.streak_active,
+    }));
+
     res.status(200).json({
       habits: {
         total: totalHabits,
@@ -162,6 +170,7 @@ export const getDashboardSummary = async (req, res) => {
         streak: meRank.current_streak,
         streak_target: STREAK_TARGET,
         streak_active: meRank.current_streak >= STREAK_TARGET,
+        habitsList,
       },
       weekly,
       lastScreening,
