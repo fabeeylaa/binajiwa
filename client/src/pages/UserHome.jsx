@@ -160,12 +160,8 @@ function UserHome({ user }) {
   const maxWeek = Math.max(...weekData.map(d => d.value), 1);
 
   const healthScore = summary?.healthScore ?? 85;
-<<<<<<< HEAD
   const mood = getScreeningMood(summary?.lastScreening);
   const streak = summary?.habits?.streak ?? 0;
-=======
->>>>>>> f53d1f629c3c44402455c276ad26f32ef5e2caba
-
   const displayName = (user?.name || user?.username || '').trim() || 'Teman Sehat';
   const firstName = displayName.split(' ')[0];
   const greeting = (() => {
