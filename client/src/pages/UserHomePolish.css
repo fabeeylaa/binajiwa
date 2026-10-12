@@ -21,15 +21,10 @@
 }
 
 .new-dashboard > .dash-search,
-.new-dashboard > .dash-header,
 .new-dashboard .health-card,
 .new-dashboard .dash-side,
 .new-dashboard .dash-bottom {
   animation: homex-rise 0.55s ease backwards;
-}
-
-.new-dashboard > .dash-header {
-  animation-delay: 0.05s;
 }
 
 .new-dashboard .health-card {
@@ -117,7 +112,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .new-dashboard > .dash-search,
-  .new-dashboard > .dash-header,
   .new-dashboard .health-card,
   .new-dashboard .dash-side,
   .new-dashboard .dash-bottom,

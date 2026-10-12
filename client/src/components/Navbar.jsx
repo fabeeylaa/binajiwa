@@ -94,6 +94,14 @@ function Navbar() {
         ))}
       </div>
 
+      {menuOpen && (
+        <div 
+          className="navbar-overlay" 
+          onClick={() => setMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       <a
         href="/auth"
         className="btn btn-primary navbar-cta"

@@ -133,6 +133,7 @@ function UserProfile({ user }) {
   const items = [
     { icon: <User size={20} />, label: 'Nama', value: localUser.name },
     { icon: <Mail size={20} />, label: 'Email', value: localUser.email },
+    { icon: <Pencil size={18} />, label: 'Username', value: localUser.username ? `@${localUser.username}` : '-' },
   ];
 
   const total = habits.length;

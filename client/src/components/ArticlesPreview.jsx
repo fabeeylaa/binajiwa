@@ -49,7 +49,11 @@ function ArticlesPreview() {
 
         <div className="articles-grid">
           {articles.map((article, idx) => (
-            <article className="pro-article-card" key={idx}>
+            <article 
+              className="pro-article-card" 
+              key={idx}
+              onClick={() => window.location.href = '/auth'}
+            >
               <div className={`pro-article-thumb ${article.thumbClass}`}>
                 <div className={`pro-thumb-overlay ${article.pattern}`}></div>
                 <div className="pro-category-tag">{article.category}</div>

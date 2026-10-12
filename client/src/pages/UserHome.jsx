@@ -80,6 +80,16 @@ function UserHome({ user }) {
   const healthScore = summary?.healthScore ?? 85;
   const streak = summary?.habits?.streak ?? 0;
 
+  const displayName = (user?.name || user?.username || '').trim() || 'Teman Sehat';
+  const firstName = displayName.split(' ')[0];
+  const greeting = (() => {
+    const h = new Date().getHours();
+    if (h < 11) return 'Selamat pagi';
+    if (h < 15) return 'Selamat siang';
+    if (h < 18) return 'Selamat sore';
+    return 'Selamat malam';
+  })();
+
   const quickLinks = [
     {
       label: 'Screening\nSederhana',
@@ -116,14 +126,12 @@ function UserHome({ user }) {
 
   return (
     <div className="new-dashboard">
+      <div className="dash-greeting">
+        <h1 className="dash-greeting-title">{greeting}, {firstName}</h1>
+      </div>
       <div className="dash-search">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
         <input type="text" placeholder="Cari aktivitas atau artikel..." aria-label="Cari aktivitas atau artikel" />
-      </div>
-
-      <div className="dash-header">
-        <h1>Halo, {user?.name || 'Budi'}!</h1>
-        <p>Bagaimana perasaanmu hari ini? (Streak: {streak} hari 🔥)</p>
       </div>
 
       <div className="dash-grid">

@@ -5,7 +5,7 @@ function Hero() {
     <section className="hero">
       <div className="hero-text">
         <div className="hero-badge">
-          <span>👋</span> Selamat Datang di SehatJiwa
+          Selamat Datang di SehatJiwa
         </div>
 
         <h1 className="hero-title">
