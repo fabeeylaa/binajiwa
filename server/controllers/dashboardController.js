@@ -49,7 +49,9 @@ export const getDashboardSummary = async (req, res) => {
       // Latest screening
       pool.query(
         `SELECT r.id, r.total_score, r.category_label, r.result_message, r.flagged, r.created_at,
-                a.title AS assessment_title, a.code AS assessment_code
+                a.title AS assessment_title, a.code AS assessment_code,
+                (SELECT MAX(sr.max_score) FROM assessment_score_ranges sr
+                  WHERE sr.assessment_id = r.assessment_id) AS max_score
          FROM assessment_results r
          JOIN assessments a ON a.id = r.assessment_id
          WHERE r.user_id = $1

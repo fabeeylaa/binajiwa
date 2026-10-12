@@ -1,0 +1,167 @@
+/* Habit Tracker: tampilan halaman habit (dua kolom, ring progress, grafik ringkas).
+   Warna memakai variabel dari index.css. Gaya modal ada di Dashboard.css. */
+
+.habits-page {
+  --habits-accent: var(--secondary, #198a4d);
+  --habits-ink: var(--forest, #1b4332);
+  --habits-muted: var(--muted, #5f7a6c);
+  --habits-line: var(--line, #d8eedf);
+  --habits-track: #cfe3d5;
+
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  color: var(--habits-ink);
+}
+.habits-page *, .habits-page *::before, .habits-page *::after { box-sizing: border-box; }
+.habits-page button { font-family: inherit; cursor: pointer; }
+.habits-page :focus-visible { outline: 3px solid var(--forest, #1b4332); outline-offset: 2px; }
+
+/* ---------- Header ---------- */
+.habits-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.habits-date { font-size: 14px; font-weight: 600; color: var(--habits-muted); text-transform: capitalize; }
+.habits-title { margin: 4px 0 0; font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
+.habits-sub { margin: 6px 0 0; font-size: 16px; color: var(--habits-muted); }
+
+.habits-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  min-height: 48px; padding: 0 22px; border: 0; border-radius: 999px;
+  background: var(--habits-accent); color: #fff; font-size: 15px; font-weight: 700;
+}
+.habits-btn:hover { filter: brightness(0.92); }
+
+/* ---------- Layout ---------- */
+.habits-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; align-items: start; }
+.habits-col { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+
+.habits-card {
+  background: var(--white, #fff); border-radius: 24px; padding: 28px;
+  box-shadow: var(--shadow-card, 0 1px 3px rgba(27, 67, 50, 0.06));
+}
+.habits-card h3 { margin: 0; font-size: 18px; font-weight: 800; }
+.habits-card .habits-h-sm { font-size: 16px; }
+.habits-card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+.habits-card-head--tight { margin-bottom: 8px; }
+.habits-muted { margin: 0; font-size: 14px; color: var(--habits-muted); }
+.habits-note { margin: 4px 0 16px; }
+.habits-note--tight { margin-bottom: 0; }
+.habits-strong { font-size: 13px; font-weight: 600; }
+
+.habits-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px 0; color: var(--habits-muted); text-align: center; }
+.habits-empty p { margin: 0; font-size: 15px; }
+
+/* ---------- Daftar habit ---------- */
+.habits-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.habits-habit {
+  display: flex; align-items: center; gap: 16px; padding: 16px 18px;
+  border-radius: 18px; background: var(--ivory, #eaf8ef); border: 1px solid var(--habits-line);
+  transition: background 0.2s;
+}
+.habits-habit.is-done { background: var(--sage-tint, #d5f2e0); }
+
+.habits-check {
+  width: 44px; height: 44px; flex: none; padding: 0; border-radius: 50%;
+  border: 2.5px solid var(--habits-accent); background: #fff; color: transparent;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: background 0.18s, color 0.18s, transform 0.18s;
+}
+.habits-check:active { transform: scale(0.92); }
+.habits-habit.is-done .habits-check { background: var(--habits-accent); color: #fff; }
+
+.habits-icon { width: 44px; height: 44px; flex: none; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+.habits-habit-text { flex: 1; min-width: 0; }
+.habits-habit-name { font-size: 16px; font-weight: 700; overflow-wrap: anywhere; }
+.habits-habit.is-done .habits-habit-name {
+  text-decoration: line-through;
+  text-decoration-color: var(--habits-ink); /* sama gelapnya dengan teks, jelas terlihat */
+  text-decoration-thickness: 2px;
+}
+.habits-habit-meta { display: flex; gap: 6px; font-size: 13px; color: var(--habits-muted); margin-top: 2px; }
+
+.habits-streak-pill {
+  display: inline-flex; align-items: center; gap: 4px; flex: none;
+  padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 700;
+  background: #fff; color: var(--habits-muted); border: 1px solid var(--habits-line);
+}
+.habits-streak-pill.is-lit { background: #fff3e0; color: #9a4a00; border-color: #f5d3a6; }
+
+.habits-delete {
+  width: 44px; height: 44px; flex: none; border: 0; border-radius: 12px;
+  background: transparent; color: var(--habits-muted);
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.habits-delete:hover { background: #fff; color: var(--error, #ba1a1a); }
+
+/* ---------- Rekomendasi ---------- */
+.habits-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.habits-chip {
+  display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px;
+  border-radius: 999px; border: 1px solid var(--habits-track); background: #fff;
+  color: var(--habits-ink); font-size: 14px; font-weight: 600;
+}
+.habits-chip:hover:not(:disabled) { background: var(--ivory, #eaf8ef); }
+.habits-chip:disabled { opacity: 0.6; cursor: wait; }
+
+/* ---------- Grafik ---------- */
+.habits-bars {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px;
+  height: 160px; border-bottom: 1px solid var(--habits-line);
+}
+.habits-bar-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; }
+.habits-bar-num { font-size: 13px; font-weight: 700; }
+.habits-bar-num.is-zero { color: #7a9185; }
+.habits-bar {
+  width: 100%; max-width: 44px; border-radius: 10px 10px 4px 4px;
+  background: var(--habits-accent); transition: height 0.3s ease;
+}
+.habits-bar.is-zero { height: 4px; border-radius: 4px; background: var(--habits-line); }
+.habits-bar-labels {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; margin-top: 10px;
+  text-align: center; font-size: 13px; color: var(--habits-muted);
+}
+.habits-bar-labels .is-today { font-weight: 800; color: var(--habits-ink); }
+
+/* ---------- Progress ring ---------- */
+.habits-progress { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.habits-ring { position: relative; width: 132px; height: 132px; }
+.habits-ring-track { fill: none; stroke: var(--habits-line); stroke-width: 12; }
+.habits-ring-fill { fill: none; stroke: var(--habits-accent); stroke-width: 12; stroke-linecap: round; transition: stroke-dashoffset 0.5s ease; }
+.habits-ring-label { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.habits-ring-label strong { font-size: 30px; font-weight: 800; }
+.habits-ring-label span { font-size: 12px; color: var(--habits-muted); }
+.habits-progress-msg { margin: 16px 0 4px; font-size: 15px; font-weight: 600; }
+
+/* ---------- Week strip ---------- */
+.habits-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; }
+.habits-week-day { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.habits-week-day > span:first-child { font-size: 12px; color: var(--habits-muted); }
+.habits-week-day > span.is-today { font-weight: 800; color: var(--habits-ink); }
+.habits-week-dot {
+  width: 32px; height: 32px; border-radius: 50%; background: var(--sage-tint, #d5f2e0); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+}
+.habits-week-dot.is-on { background: var(--habits-accent); }
+.habits-week-dot.is-today { border: 2.5px solid var(--habits-accent); background: #fff; }
+.habits-week-dot.is-today.is-on { background: var(--habits-accent); }
+
+/* ---------- Streak ---------- */
+.habits-streak { display: flex; align-items: center; gap: 14px; padding: 22px 28px; border-radius: 24px; background: var(--sage-tint, #d5f2e0); }
+.habits-streak-icon {
+  width: 44px; height: 44px; flex: none; border-radius: 12px; background: #fff; color: var(--habits-accent);
+  display: flex; align-items: center; justify-content: center;
+}
+.habits-streak-title { font-size: 15px; font-weight: 700; }
+
+/* ---------- Responsif ---------- */
+@media (max-width: 960px) {
+  .habits-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .habits-card { padding: 20px; }
+  .habits-habit { flex-wrap: wrap; }
+  .habits-habit-text { flex-basis: calc(100% - 140px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .habits-page *, .habits-page *::before, .habits-page *::after { transition: none !important; }
+}

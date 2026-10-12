@@ -3,6 +3,7 @@ import './UserHomeNew.css';
 import './UserHomePolish.css';
 import { useNavigate } from 'react-router-dom';
 import ProgressRing from '../components/ProgressRing';
+import { getScreeningMood } from '../utils/screeningMood';
 
 function UserHome({ user }) {
   const navigate = useNavigate();
@@ -78,6 +79,7 @@ function UserHome({ user }) {
   const maxWeek = Math.max(...weekData.map(d => d.value), 1);
 
   const healthScore = summary?.healthScore ?? 85;
+  const mood = getScreeningMood(summary?.lastScreening);
   const streak = summary?.habits?.streak ?? 0;
 
   const displayName = (user?.name || user?.username || '').trim() || 'Teman Sehat';
@@ -152,6 +154,23 @@ function UserHome({ user }) {
             <div className="health-ring">
               <ProgressRing value={healthScore} total={100} size={140} stroke={14} />
             </div>
+            {mood && (
+              <figure className="health-mood">
+                <div className="health-mood-frame">
+                  <img
+                    key={mood.level}
+                    src={mood.src}
+                    width="400"
+                    height="447"
+                    alt={`Ilustrasi hasil screening terakhir: ${summary.lastScreening.category_label}`}
+                  />
+                </div>
+                <figcaption>
+                  <span>Hasil terakhir</span>
+                  <strong>{summary.lastScreening.category_label}</strong>
+                </figcaption>
+              </figure>
+            )}
           </div>
         </div>
 

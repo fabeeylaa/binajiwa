@@ -8,7 +8,7 @@ INSERT INTO assessments (code, title, instruction, source) VALUES
 ('phq9', 'PHQ-9 (Skrining Depresi)',
  'Dalam 2 minggu terakhir, seberapa sering kamu terganggu oleh masalah-masalah berikut?',
  'Kroenke, Spitzer & Williams (2001), J Gen Intern Med 16(9):606-613');
-
+z
 INSERT INTO assessment_questions (assessment_id, question_text, order_number, is_sensitive) VALUES
 (1, 'Kurang minat atau kurang bersemangat dalam melakukan aktivitas apapun', 1, false),
 (1, 'Merasa murung, sedih, atau putus asa', 2, false),
