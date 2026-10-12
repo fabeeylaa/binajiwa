@@ -76,7 +76,7 @@
 }
 
 .new-dashboard .q-link:hover .q-icon {
-  transform: scale(1.1) rotate(-4deg);
+  transform: scale(1.15);
 }
 
 .new-dashboard .dash-bottom {

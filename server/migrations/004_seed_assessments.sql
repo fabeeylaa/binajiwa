@@ -109,4 +109,4 @@ WHERE q.assessment_id = 3;
 INSERT INTO assessment_score_ranges (assessment_id, min_score, max_score, category_label, result_message) VALUES
 (3, 0, 8, 'Baik', 'Kondisimu terlihat cukup baik minggu ini. Terus jaga ritme ini ya.'),
 (3, 9, 16, 'Perlu perhatian', 'Ada beberapa tanda kelelahan/stres. Coba luangkan waktu istirahat & self-care lebih.'),
-(3, 17, 24, 'Disarankan konsultasi', 'Tanda kelelahan cukup tinggi. Pertimbangkan bicara dengan konselor kampus atau coba isi PHQ-9/GAD-7 untuk gambaran lebih lengkap.');
+(3, 17, 21, 'Disarankan konsultasi', 'Tanda kelelahan cukup tinggi. Pertimbangkan bicara dengan konselor kampus atau coba isi PHQ-9/GAD-7 untuk gambaran lebih lengkap.');

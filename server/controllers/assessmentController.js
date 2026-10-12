@@ -36,7 +36,7 @@ export const getAssessments = async (req, res) => {
                 WHERE r.assessment_id = a.id AND r.user_id = $1
                 ORDER BY r.created_at DESC LIMIT 1) AS last_category
        FROM assessments a
-       ORDER BY a.id`,
+       ORDER BY a.is_starter DESC, a.id`,
       [req.user.id],
     );
     res.status(200).json({ assessments: result.rows });
