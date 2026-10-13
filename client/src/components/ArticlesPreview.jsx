@@ -1,28 +1,28 @@
-import { ArrowUpRight, Clock, Sparkles } from 'lucide-react';
-import './ArticlesPreview.css';
+import { ArrowRight, Clock, Sparkle } from "lucide-react";
+import "./ArticlesPreview.css";
+import tipsImg from "../assets/tips.jpg";
+import makananImg from "../assets/makanan.jpg";
+import aktivitasImg from "../assets/aktivitas.jpg";
 
 function ArticlesPreview() {
   const articles = [
     {
-      category: 'Tips Kuliah',
-      title: '5 Cara Mudah Kurangi Stres Saat UTS',
-      readTime: '4 menit baca',
-      thumbClass: 'thumb-gradient-1',
-      pattern: 'bg-pattern-1'
+      category: "Tips Kuliah",
+      title: "5 Cara Mudah Kurangi Stres Saat UTS",
+      readTime: "4 menit baca",
+      image: tipsImg,
     },
     {
-      category: 'Pola Makan',
-      title: 'Makanan yang Baik untuk Kesehatan Mental',
-      readTime: '5 menit baca',
-      thumbClass: 'thumb-gradient-2',
-      pattern: 'bg-pattern-2'
+      category: "Pola Makan",
+      title: "Makanan yang Baik untuk Kesehatan Mental",
+      readTime: "5 menit baca",
+      image: makananImg,
     },
     {
-      category: 'Aktivitas',
-      title: 'Gerak Tubuh, Tenangkan Pikiran',
-      readTime: '3 menit baca',
-      thumbClass: 'thumb-gradient-3',
-      pattern: 'bg-pattern-3'
+      category: "Aktivitas",
+      title: "Gerak Tubuh, Tenangkan Pikiran",
+      readTime: "3 menit baca",
+      image: aktivitasImg,
     },
   ];
 
@@ -31,31 +31,35 @@ function ArticlesPreview() {
       <div className="articles-container">
         <div className="articles-header">
           <div className="header-badge">
-            <Sparkles size={14} className="badge-icon" />
+            <Sparkle size={14} fill="currentColor" className="badge-icon" />
             <span className="preview-label">Artikel & Edukasi</span>
           </div>
           <h2 className="preview-title">
-            Bacaan ringan buat<br />
-            <span>pikiran tenang.</span>
+            Ruang kecil untuk pikiran yang <span>lebih tenang.</span>
           </h2>
           <p className="preview-desc">
-            Ditulis khusus untuk mahasiswa — soal deadline, ujian, kehidupan sosial,
-            dan pola hidup yang relate banget.
+            Temukan insight ringan seputar stres, pola hidup, dan kesehatan
+            mental mahasiswa.
           </p>
-          <a href="/auth" className="btn-explore">
-            Jelajahi Semua
-          </a>
+          <div className="articles-actions">
+            <a href="/auth" className="btn-explore">
+              Jelajahi Artikel <ArrowRight size={18} />
+            </a>
+            <a href="/auth" className="btn-topics">
+              Lihat topik <ArrowRight size={16} />
+            </a>
+          </div>
         </div>
 
         <div className="articles-grid">
           {articles.map((article, idx) => (
-            <article 
-              className="pro-article-card" 
+            <article
+              className="pro-article-card"
               key={idx}
-              onClick={() => window.location.href = '/auth'}
+              onClick={() => (window.location.href = "/auth")}
             >
-              <div className={`pro-article-thumb ${article.thumbClass}`}>
-                <div className={`pro-thumb-overlay ${article.pattern}`}></div>
+              <div className="pro-article-thumb">
+                <img src={article.image} alt={article.title} loading="lazy" />
                 <div className="pro-category-tag">{article.category}</div>
               </div>
               <div className="pro-article-content">
@@ -64,6 +68,9 @@ function ArticlesPreview() {
                   <span className="pro-readtime">
                     <Clock size={14} />
                     {article.readTime}
+                  </span>
+                  <span className="pro-article-action">
+                    <ArrowRight size={16} />
                   </span>
                 </div>
               </div>
