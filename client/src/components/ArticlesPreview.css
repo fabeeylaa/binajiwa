@@ -8,7 +8,7 @@
 
 /* Subtle background accent */
 .articles-preview::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -20%;
   left: -10%;
@@ -56,7 +56,7 @@
 }
 
 .preview-label {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: "Plus Jakarta Sans", sans-serif;
   font-size: 13px;
   font-weight: 700;
   text-transform: uppercase;
@@ -65,7 +65,7 @@
 }
 
 .preview-title {
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   font-size: clamp(2rem, 4vw, 3rem);
   font-weight: 700;
   color: var(--ink-900);
@@ -79,7 +79,7 @@
 }
 
 .preview-desc {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: "Plus Jakarta Sans", sans-serif;
   font-size: 1.125rem;
   color: var(--on-surface-variant);
   line-height: 1.6;
@@ -95,7 +95,7 @@
   border-radius: var(--radius-pill);
   background: var(--ink-900);
   color: white;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: "Plus Jakarta Sans", sans-serif;
   font-size: 15px;
   font-weight: 600;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -131,7 +131,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
   border: 1px solid rgba(226, 232, 240, 0.6);
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
@@ -154,9 +154,15 @@
   overflow: hidden;
 }
 
-.thumb-gradient-1 { background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); }
-.thumb-gradient-2 { background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%); }
-.thumb-gradient-3 { background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%); }
+.thumb-gradient-1 {
+  background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+}
+.thumb-gradient-2 {
+  background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+}
+.thumb-gradient-3 {
+  background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+}
 
 .pro-thumb-overlay {
   position: absolute;
@@ -173,10 +179,27 @@
 }
 
 /* Beautiful mesh gradient emulation */
-.bg-pattern-1 { background-image: radial-gradient(circle at 10% 20%, rgb(34, 197, 94) 0%, rgb(20, 83, 45) 90%); }
-.bg-pattern-2 { background-image: radial-gradient(circle at 10% 20%, rgb(59, 130, 246) 0%, rgb(30, 58, 138) 81.3%); }
-.bg-pattern-3 { background-image: radial-gradient(circle at 10% 20%, rgb(249, 115, 22) 0%, rgb(154, 52, 18) 72.4%); }
-
+.bg-pattern-1 {
+  background-image: radial-gradient(
+    circle at 10% 20%,
+    rgb(34, 197, 94) 0%,
+    rgb(20, 83, 45) 90%
+  );
+}
+.bg-pattern-2 {
+  background-image: radial-gradient(
+    circle at 10% 20%,
+    rgb(59, 130, 246) 0%,
+    rgb(30, 58, 138) 81.3%
+  );
+}
+.bg-pattern-3 {
+  background-image: radial-gradient(
+    circle at 10% 20%,
+    rgb(249, 115, 22) 0%,
+    rgb(154, 52, 18) 72.4%
+  );
+}
 
 .pro-category-tag {
   position: relative;
@@ -186,13 +209,13 @@
   -webkit-backdrop-filter: blur(8px);
   padding: 0.4rem 1rem;
   border-radius: var(--radius-pill);
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: "Plus Jakarta Sans", sans-serif;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--ink-900);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .pro-article-content {
@@ -203,7 +226,7 @@
 }
 
 .pro-article-title {
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   font-size: 1.125rem;
   font-weight: 600;
   color: var(--ink-900);
@@ -230,7 +253,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: "Plus Jakarta Sans", sans-serif;
   font-size: 13px;
   color: var(--ink-soft);
   font-weight: 500;
@@ -259,12 +282,12 @@
     grid-template-columns: 1fr;
     gap: 3rem;
   }
-  
+
   .articles-header {
     align-items: center;
     text-align: center;
   }
-  
+
   .preview-desc {
     max-width: 600px;
   }
@@ -275,13 +298,130 @@
     grid-column: span 1;
     flex-direction: column;
   }
-  
+
   .pro-article-card:nth-child(1) .pro-article-thumb {
     width: 100%;
     aspect-ratio: 16/10;
   }
-  
+
   .articles-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* ===== Redesign: gambar kartu, tombol, panah ===== */
+.articles-grid,
+.pro-article-card {
+  min-width: 0;
+}
+
+.pro-article-thumb {
+  padding: 0;
+}
+
+.pro-article-card:nth-child(1) .pro-article-thumb {
+  min-height: 220px;
+}
+
+.pro-article-thumb img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.6s ease;
+}
+
+.pro-article-card:hover .pro-article-thumb img {
+  transform: scale(1.05);
+}
+
+.pro-category-tag {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+}
+
+.articles-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.btn-topics {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink-900);
+  text-decoration: none;
+  border-bottom: 2px solid var(--ink-900);
+  padding-bottom: 2px;
+}
+
+.btn-topics:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+}
+/* ===== Redesign: gambar kartu, tombol, panah ===== */
+.articles-grid,
+.pro-article-card {
+  min-width: 0;
+}
+
+.pro-article-thumb {
+  padding: 0;
+}
+
+.pro-article-card:nth-child(1) .pro-article-thumb {
+  min-height: 220px;
+}
+
+.pro-article-thumb img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.6s ease;
+}
+
+.pro-article-card:hover .pro-article-thumb img {
+  transform: scale(1.05);
+}
+
+.pro-category-tag {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+}
+
+.articles-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.btn-topics {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink-900);
+  text-decoration: none;
+  border-bottom: 2px solid var(--ink-900);
+  padding-bottom: 2px;
+}
+
+.btn-topics:hover {
+  color: var(--primary);
+  border-color: var(--primary);
 }
