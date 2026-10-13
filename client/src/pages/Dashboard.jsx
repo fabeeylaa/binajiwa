@@ -7,6 +7,7 @@ import UserHabits from './UserHabits';
 import UserArticles from './UserArticles';
 import UserArticleDetail from './UserArticleDetail';
 import UserSocial from './UserSocial';
+import UserProfile from "./UserProfile";
 
 import AdminOverview from './AdminOverview';
 import AdminArticles from './AdminArticles';

@@ -52,19 +52,6 @@ function DashboardLayout({ user, children, menuItems }) {
             />
           )}
 
-                    <button
-            ref={(el) => { linkRefs.current.profile = el; }}
-            className={`sb-link ${activeId === 'profile' ? 'active' : ''}`}
-            aria-current={activeId === 'profile' ? 'page' : undefined}
-            onClick={() => {
-              navigate(profilePath);
-              document.querySelector('.sidebar')?.classList.remove('open');
-            }}
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            <span>Profil</span>
-          </button>
-
           {menuItems.map(item => (
             <button
               key={item.id}
@@ -81,18 +68,20 @@ function DashboardLayout({ user, children, menuItems }) {
             </button>
           ))}
 
-          <button
-            ref={(el) => { linkRefs.current.profile = el; }}
-            className={`sb-link ${activeId === 'profile' ? 'active' : ''}`}
-            aria-current={activeId === 'profile' ? 'page' : undefined}
-            onClick={() => {
-              navigate(profilePath);
-              document.querySelector('.sidebar')?.classList.remove('open');
-            }}
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            <span>Profil</span>
-          </button>
+          {user?.role !== 'admin' && (
+            <button
+              ref={(el) => { linkRefs.current.profile = el; }}
+              className={`sb-link ${activeId === 'profile' ? 'active' : ''}`}
+              aria-current={activeId === 'profile' ? 'page' : undefined}
+              onClick={() => {
+                navigate(profilePath);
+                document.querySelector('.sidebar')?.classList.remove('open');
+              }}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <span>Profil</span>
+            </button>
+          )}
         </nav>
         <div className="sb-foot">
           <button

@@ -7,8 +7,8 @@ export const getAdminStats = async (req, res) => {
     const articlesCount = await pool.query('SELECT COUNT(*)::int FROM articles');
     const assessmentsCount = await pool.query('SELECT COUNT(*)::int FROM assessment_results');
     const habitsCount = await pool.query('SELECT COUNT(*)::int FROM habits');
-    const completedHabits = await pool.query(`SELECT COUNT(*)::int FROM habits WHERE status = 'completed'`);
-    
+    const completedHabits = await pool.query('SELECT COUNT(*)::int FROM habit_logs');
+
     // Get recent user trend (last 7 days)
     const userTrend = await pool.query(`
       SELECT DATE(created_at) as date, COUNT(*)::int as count
