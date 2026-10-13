@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react';
 import { ARTICLE_CATEGORIES, categoryLabel } from '../utils/articleCategories';
+import { 
+  FileText, Plus, Search, Edit3, Trash2, Eye, Calendar, 
+  Tag, AlertCircle, X, CheckCircle2 
+} from 'lucide-react';
 import '../pages/Dashboard.css';
 
 const DEFAULT_CATEGORY = ARTICLE_CATEGORIES[0].value;
@@ -7,6 +11,8 @@ const DEFAULT_CATEGORY = ARTICLE_CATEGORIES[0].value;
 function AdminArticles() {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
@@ -25,7 +31,7 @@ function AdminArticles() {
 
   const fetchArticles = async () => {
     try {
-      const res = await fetch('/api/articles?page=1&limit=20');
+      const res = await fetch('/api/articles?page=1&limit=50');
       const data = await res.json();
       setArticles(data.items || []);
     } catch (err) {
@@ -74,10 +80,6 @@ function AdminArticles() {
     setShowModal(true);
   };
 
-  const navigateToArticle = (article) => {
-    setViewingArticle(article);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError('');
@@ -112,165 +114,243 @@ function AdminArticles() {
     }
   };
 
-  const closeModal = () => {
-    setViewingArticle(null);
-  };
+  // Filter articles based on search and category
+  const filteredArticles = articles.filter(article => {
+    const matchesSearch = article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (article.excerpt && article.excerpt.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesCategory = selectedCategory === 'all' || article.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
-  if (loading) return <div>Memuat artikel...</div>;
+  if (loading) return (
+    <div className="tab-panel" style={{ minHeight: '400px' }}>
+      <div className="skeleton-grid">
+        {[1,2,3].map(i => <div key={i} className="skeleton-card" />)}
+      </div>
+    </div>
+  );
 
   return (
-    <div className="tab-panel">
-      <div className="card" style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+    <div className="tab-panel admin-articles">
+      {/* Header Section */}
+      <div className="overview-header">
         <div>
-          <h3>Manajemen Artikel</h3>
-          <p className="hint">Kelola konten edukasi untuk pengguna</p>
-          <p style={{ marginTop: '16px' }}>Total artikel: <strong>{articles.length}</strong></p>
+          <h1 className="overview-title">Manajemen Artikel</h1>
+          <p className="overview-subtitle">Kelola dan publikasikan konten edukasi kesehatan mental</p>
         </div>
-        <button
-          className="btn btn-primary"
-          onClick={openAddModal}
-        >
-          + Tambah Artikel
+        <button className="btn btn-primary" onClick={openAddModal}>
+          <Plus size={18} strokeWidth={2.5} />
+          <span>Tambah Artikel</span>
         </button>
       </div>
 
+      {/* Filter & Search Bar */}
+      <div className="card filter-card">
+        <div className="search-box">
+          <Search size={18} strokeWidth={2} className="search-icon" />
+          <input
+            type="text"
+            placeholder="Cari judul atau ringkasan artikel..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="search-input"
+          />
+          {searchQuery && (
+            <button className="search-clear" onClick={() => setSearchQuery('')}>
+              <X size={16} />
+            </button>
+          )}
+        </div>
+        <div className="category-filters">
+          <button
+            className={`filter-pill ${selectedCategory === 'all' ? 'active' : ''}`}
+            onClick={() => setSelectedCategory('all')}
+          >
+            Semua ({articles.length})
+          </button>
+          {ARTICLE_CATEGORIES.map(cat => {
+            const count = articles.filter(a => a.category === cat.value).length;
+            return (
+              <button
+                key={cat.value}
+                className={`filter-pill ${selectedCategory === cat.value ? 'active' : ''}`}
+                onClick={() => setSelectedCategory(cat.value)}
+              >
+                {cat.label} ({count})
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Articles Table Card */}
       <div className="card">
-        <h4>Daftar Artikel</h4>
-        
-        {articles.length === 0 ? (
-          <p style={{ marginTop: '16px', color: 'var(--on-surface-variant)' }}>
-            Belum ada artikel. Tambahkan konten edukasi baru.
-          </p>
+        <div className="table-header-row">
+          <h3 className="chart-title">Daftar Artikel ({filteredArticles.length})</h3>
+        </div>
+
+        {filteredArticles.length === 0 ? (
+          <div className="empty-state">
+            <FileText size={48} strokeWidth={1.5} />
+            <p>Tidak ada artikel yang ditemukan.</p>
+            {searchQuery || selectedCategory !== 'all' ? (
+              <button className="btn btn-sm btn-secondary" onClick={() => { setSearchQuery(''); setSelectedCategory('all'); }}>
+                Reset Filter
+              </button>
+            ) : (
+              <button className="btn btn-sm btn-primary" onClick={openAddModal}>
+                Tambah Artikel Baru
+              </button>
+            )}
+          </div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '16px' }}>
-            <thead>
-              <tr style={{ borderBottom: '2px solid var(--outline-variant)' }}>
-                <th style={{ textAlign: 'left', padding: '12px', fontWeight: 600 }}>Judul</th>
-                <th style={{ textAlign: 'left', padding: '12px', fontWeight: 600 }}>Kategori</th>
-                <th style={{ textAlign: 'center', padding: '12px', fontWeight: 600 }}>Tanggal</th>
-                <th style={{ textAlign: 'center', padding: '12px', fontWeight: 600 }}>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {articles.map(article => (
-                <tr key={article.id} style={{ borderBottom: '1px solid var(--outline-variant)' }}>
-                  <td style={{ padding: '12px', fontWeight: 500 }}>{article.title}</td>
-                  <td style={{ padding: '12px' }}>
-                    <span className="tag">{categoryLabel(article.category)}</span>
-                  </td>
-                  <td style={{ padding: '12px', textAlign: 'center' }}>
-                    {new Date(article.created_at).toLocaleDateString('id-ID')}
-                  </td>
-                  <td style={{ padding: '12px', textAlign: 'center', display: 'flex', gap: '4px', justifyContent: 'center' }}>
-                    <button
-                      className="btn btn-sm btn-ghost"
-                      onClick={() => navigateToArticle(article)}
-                    >
-                      Lihat
-                    </button>
-                    <button
-                      className="btn btn-sm btn-ghost"
-                      onClick={() => openEditModal(article)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="btn btn-sm btn-ghost"
-                      onClick={() => handleDelete(article.id)}
-                      style={{ color: 'var(--error)' }}
-                    >
-                      Hapus
-                    </button>
-                  </td>
+          <div className="table-responsive">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Judul Artikel</th>
+                  <th>Kategori</th>
+                  <th>Tanggal Dibuat</th>
+                  <th style={{ textAlign: 'center' }}>Aksi</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filteredArticles.map(article => (
+                  <tr key={article.id}>
+                    <td>
+                      <div className="article-title-cell">
+                        <span className="font-weight-600 text-ink">{article.title}</span>
+                        {article.excerpt && <span className="article-excerpt-preview">{article.excerpt}</span>}
+                      </div>
+                    </td>
+                    <td>
+                      <span className="badge badge-category">
+                        {categoryLabel(article.category)}
+                      </span>
+                    </td>
+                    <td>
+                      <span className="text-muted font-mono text-sm">
+                        {new Date(article.created_at).toLocaleDateString('id-ID', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric'
+                        })}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="action-buttons">
+                        <button
+                          className="btn-icon"
+                          title="Lihat"
+                          onClick={() => setViewingArticle(article)}
+                        >
+                          <Eye size={16} strokeWidth={2} />
+                        </button>
+                        <button
+                          className="btn-icon"
+                          title="Edit"
+                          onClick={() => openEditModal(article)}
+                        >
+                          <Edit3 size={16} strokeWidth={2} />
+                        </button>
+                        <button
+                          className="btn-icon btn-danger"
+                          title="Hapus"
+                          onClick={() => handleDelete(article.id)}
+                        >
+                          <Trash2 size={16} strokeWidth={2} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
+      {/* Add / Edit Modal */}
       {showModal && (
-        <div
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}
-          onClick={() => setShowModal(false)}
-        >
-          <div
-            className="card"
-            style={{ width: '90%', maxWidth: '560px', maxHeight: '85vh', overflowY: 'auto', padding: '24px' }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 style={{ marginBottom: '16px' }}>{editingId ? 'Edit Artikel' : 'Tambah Artikel'}</h3>
+        <div className="modal-backdrop" onClick={() => setShowModal(false)}>
+          <div className="modal-card card" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{editingId ? 'Edit Artikel' : 'Tambah Artikel Baru'}</h3>
+              <button className="btn-icon" onClick={() => setShowModal(false)}>
+                <X size={20} />
+              </button>
+            </div>
 
             {formError && (
-              <div style={{ marginBottom: '12px', padding: '10px', background: 'rgba(239,68,68,0.1)', color: 'var(--error)', borderRadius: '8px', fontSize: '14px' }}>
-                {formError}
+              <div className="form-alert error">
+                <AlertCircle size={16} />
+                <span>{formError}</span>
               </div>
             )}
 
-            <form onSubmit={handleSubmit}>
-              <div style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontWeight: 500, fontSize: '14px' }}>Judul *</label>
+            <form onSubmit={handleSubmit} className="admin-form">
+              <div className="form-group">
+                <label>Judul Artikel *</label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="Judul artikel"
-                  style={{ width: '100%', padding: '10px', border: '1px solid var(--outline-variant)', borderRadius: '8px', fontSize: '14px' }}
+                  placeholder="Contoh: Mengenal Gejala Kecemasan Berlebih"
+                  required
                 />
               </div>
 
-              <div style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontWeight: 500, fontSize: '14px' }}>Kategori</label>
-                <select
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  style={{ width: '100%', padding: '10px', border: '1px solid var(--outline-variant)', borderRadius: '8px', fontSize: '14px' }}
-                >
-                  {ARTICLE_CATEGORIES.map(cat => (
-                    <option key={cat.value} value={cat.value}>{cat.label}</option>
-                  ))}
-                </select>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Kategori</label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  >
+                    {ARTICLE_CATEGORIES.map(cat => (
+                      <option key={cat.value} value={cat.value}>{cat.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>URL Cover Image</label>
+                  <input
+                    type="url"
+                    value={formData.cover_image}
+                    onChange={(e) => setFormData({ ...formData, cover_image: e.target.value })}
+                    placeholder="https://images.unsplash.com/..."
+                  />
+                </div>
               </div>
 
-              <div style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontWeight: 500, fontSize: '14px' }}>Ringkasan</label>
+              <div className="form-group">
+                <label>Ringkasan (Excerpt)</label>
                 <input
                   type="text"
                   value={formData.excerpt}
                   onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
-                  placeholder="Ringkasan singkat artikel"
-                  style={{ width: '100%', padding: '10px', border: '1px solid var(--outline-variant)', borderRadius: '8px', fontSize: '14px' }}
+                  placeholder="Ringkasan singkat yang muncul di card artikel..."
                 />
               </div>
 
-              <div style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontWeight: 500, fontSize: '14px' }}>URL Cover Image</label>
-                <input
-                  type="url"
-                  value={formData.cover_image}
-                  onChange={(e) => setFormData({ ...formData, cover_image: e.target.value })}
-                  placeholder="https://example.com/image.jpg"
-                  style={{ width: '100%', padding: '10px', border: '1px solid var(--outline-variant)', borderRadius: '8px', fontSize: '14px' }}
-                />
-              </div>
-
-              <div style={{ marginBottom: '14px' }}>
-                <label style={{ display: 'block', marginBottom: '6px', fontWeight: 500, fontSize: '14px' }}>Konten *</label>
+              <div className="form-group">
+                <label>Konten Lengkap *</label>
                 <textarea
                   value={formData.content}
                   onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  placeholder="Tulis konten artikel di sini"
-                  rows={8}
-                  style={{ width: '100%', padding: '10px', border: '1px solid var(--outline-variant)', borderRadius: '8px', fontSize: '14px', resize: 'vertical' }}
+                  placeholder="Tulis atau tempel isi artikel lengkap di sini..."
+                  rows={10}
+                  required
                 />
               </div>
 
-              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+              <div className="modal-footer">
                 <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>
                   Batal
                 </button>
                 <button type="submit" className="btn btn-primary">
-                  {editingId ? 'Perbarui' : 'Simpan'}
+                  {editingId ? 'Perbarui Artikel' : 'Publikasikan'}
                 </button>
               </div>
             </form>
@@ -278,33 +358,44 @@ function AdminArticles() {
         </div>
       )}
 
+      {/* View Article Modal */}
       {viewingArticle && (
-        <div
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}
-          onClick={closeModal}
-        >
-          <div
-            className="card"
-            style={{ width: '90%', maxWidth: '640px', maxHeight: '85vh', overflowY: 'auto', padding: '24px' }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginBottom: '16px' }}>
+        <div className="modal-backdrop" onClick={() => setViewingArticle(null)}>
+          <div className="modal-card card" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
               <div>
-                <h3 style={{ marginBottom: '8px' }}>{viewingArticle.title}</h3>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span className="tag">{categoryLabel(viewingArticle.category)}</span>
-                  <span className="hint">
-                    {new Date(viewingArticle.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
-                  </span>
-                </div>
+                <span className="badge badge-category" style={{ marginBottom: '8px', display: 'inline-block' }}>
+                  {categoryLabel(viewingArticle.category)}
+                </span>
+                <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--ink-900)', margin: 0 }}>
+                  {viewingArticle.title}
+                </h2>
+                <span className="text-muted font-mono text-xs" style={{ display: 'block', marginTop: '4px' }}>
+                  Dipublikasikan pada {new Date(viewingArticle.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
+                </span>
               </div>
-              <button className="btn btn-sm btn-ghost" onClick={closeModal} style={{ flexShrink: 0 }}>Tutup</button>
+              <button className="btn-icon" onClick={() => setViewingArticle(null)}>
+                <X size={20} />
+              </button>
             </div>
+
             {viewingArticle.excerpt && (
-              <p className="hint" style={{ marginBottom: '12px', fontStyle: 'italic' }}>{viewingArticle.excerpt}</p>
+              <div className="article-preview-excerpt">
+                {viewingArticle.excerpt}
+              </div>
             )}
-            <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.8, color: 'var(--on-surface)' }}>
+
+            <div className="article-preview-content">
               {viewingArticle.content}
+            </div>
+
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => { const a = viewingArticle; setViewingArticle(null); openEditModal(a); }}>
+                Edit Artikel Ini
+              </button>
+              <button className="btn btn-primary" onClick={() => setViewingArticle(null)}>
+                Tutup
+              </button>
             </div>
           </div>
         </div>
