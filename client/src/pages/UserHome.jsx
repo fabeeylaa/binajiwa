@@ -160,6 +160,8 @@ function UserHome({ user }) {
   const maxWeek = Math.max(...weekData.map(d => d.value), 1);
 
   const healthScore = summary?.healthScore ?? 85;
+  const screeningScore = summary?.screeningScore ?? null;
+  const screeningMaxScore = summary?.screeningMaxScore ?? null;
   const mood = getScreeningMood(summary?.lastScreening);
   const streak = summary?.habits?.streak ?? 0;
   const displayName = (user?.name || user?.username || '').trim() || 'Teman Sehat';
@@ -299,7 +301,7 @@ function UserHome({ user }) {
               <p>
                 {summary?.lastScreening
                   ? `Hasil screening terakhir: ${summary.lastScreening.assessment_title} (${summary.lastScreening.category_label}).`
-                  : 'Lakukan screening pertama Anda untuk memantau kesehatan mental.'}
+                  : 'Belum ada hasil screening. Lakukan screening pertama Anda untuk memantau kesehatan mental.'}
               </p>
               <div className="trend-badge">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 7L13.5 15.5 8.5 10.5 2 17"/><path d="M16 7h6v6"/></svg>
@@ -307,7 +309,12 @@ function UserHome({ user }) {
               </div>
             </div>
             <div className="health-ring">
-              <ProgressRing value={healthScore} total={100} size={140} stroke={14} />
+              <ProgressRing 
+                value={screeningScore ?? 0} 
+                total={screeningMaxScore ?? 100} 
+                size={140} 
+                stroke={14} 
+              />
             </div>
             {mood && (
               <figure className="health-mood">

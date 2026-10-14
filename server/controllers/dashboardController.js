@@ -149,10 +149,15 @@ export const getDashboardSummary = async (req, res) => {
 
     const meRank = leaderboard.find((r) => r.is_me) || { rank_position: null, current_streak: myStreakData };
 
-    // Health score calculation
-    const streakBonus = Math.min(meRank.current_streak * 2, 20);
-    const screeningBonus = lastScreening ? 10 : 0;
-    const healthScore = Math.min(100, Math.round(progressPct * 0.6 + streakBonus + screeningBonus + 15));
+    // Calculate health score based on screening result
+    let healthScore;
+    if (lastScreening && lastScreening.total_score !== undefined && lastScreening.max_score) {
+      healthScore = Math.round((lastScreening.total_score / lastScreening.max_score) * 100);
+    } else {
+      const streakBonus = Math.min(meRank.current_streak * 2, 20);
+      const screeningBonus = lastScreening ? 10 : 0;
+      healthScore = Math.min(100, Math.round(progressPct * 0.6 + streakBonus + screeningBonus + 15));
+    }
 
     const habitsList = habits.slice(0, 4).map(h => ({
       id: h.id,
@@ -177,6 +182,8 @@ export const getDashboardSummary = async (req, res) => {
       meRank,
       latestArticles: articlesRes.rows,
       healthScore,
+      screeningScore: lastScreening?.total_score ?? null,
+      screeningMaxScore: lastScreening?.max_score ?? null,
     });
   } catch (err) {
     console.error("Dashboard summary error:", err);
