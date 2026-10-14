@@ -61,16 +61,25 @@
   background: #fff;
   color: #1f2937;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  transition: scale 0.25s ease, box-shadow 0.25s ease;
+}
+
+.authx-chip:hover {
+  scale: 1.05;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
 }
 
 .authx-chip-top {
   top: -14px;
   right: -12px;
+  animation: authx-float-up 4s ease-in-out infinite;
 }
 
 .authx-chip-bottom {
   bottom: -14px;
   left: -12px;
+  animation: authx-float-down 5s ease-in-out infinite;
+  animation-delay: 0.8s; /* supaya tidak gerak serempak */
 }
 
 .authx-chip-icon {
@@ -82,6 +91,7 @@
   border-radius: 10px;
   background: var(--mint-100);
   color: var(--primary);
+  animation: authx-pulse 2.5s ease-in-out infinite;
 }
 
 .authx-chip-text {
@@ -118,6 +128,31 @@
   max-width: 440px;
   padding: 0;
   box-shadow: none;
+}
+
+/* ===== Animasi chip melayang ===== */
+@keyframes authx-float-up {
+  0%, 100% { translate: 0 0; }
+  50%      { translate: 0 -10px; }
+}
+
+@keyframes authx-float-down {
+  0%, 100% { translate: 0 0; }
+  50%      { translate: 0 10px; }
+}
+
+@keyframes authx-pulse {
+  0%, 100% { scale: 1; }
+  50%      { scale: 1.15; }
+}
+
+/* Hormati pengguna yang mematikan animasi di sistemnya */
+@media (prefers-reduced-motion: reduce) {
+  .authx-chip-top,
+  .authx-chip-bottom,
+  .authx-chip-icon {
+    animation: none;
+  }
 }
 
 @media (max-width: 900px) {
