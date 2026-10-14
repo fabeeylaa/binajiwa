@@ -167,7 +167,12 @@ function UserHabits() {
     }
   };
 
-  if (loading) return <div>Memuat habit tracker...</div>;
+  if (loading)
+  return (
+    <div className="tab-panel habits-page">
+      <p className="habits-muted">Memuat habit tracker...</p>
+    </div>
+  );
 
   const doneCount = habits.filter((h) => h.logged_today).length;
   const totalHabits = habits.length;
