@@ -32,21 +32,28 @@ function Hero() {
       </div>
 
       <div className="hero-visual">
-        <div className="hero-illustration" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&q=80&w=800&h=1200')", backgroundSize: 'cover', backgroundPosition: 'center' }}>
-          <div className="float-card float-card--top" style={{right: '-20px', left: 'auto', top: '20px'}}>
-            <div className="fc-icon" style={{background: 'none'}}>🏃‍♀️</div>
-            <div>
-              <div className="fc-title">Aktivitas</div>
-              <div className="fc-sub">Tercapai!</div>
-            </div>
-          </div>
+        <div
+          className="hero-illustration"
+          style={{
+            backgroundImage: "url('https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&q=80&w=800&h=1200')",
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+          }}
+        />
 
-          <div className="float-card float-card--bottom" style={{left: '-20px', right: 'auto', bottom: '40px'}}>
-            <div className="fc-icon" style={{background: 'none'}}>🧘‍♀️</div>
-            <div>
-              <div className="fc-title">Ketenangan</div>
-              <div className="fc-sub">+15% Hari ini</div>
-            </div>
+        <div className="float-card float-card--top">
+          <div className="fc-icon">🏃‍♀️</div>
+          <div>
+            <div className="fc-title">Aktivitas</div>
+            <div className="fc-sub">Tercapai!</div>
+          </div>
+        </div>
+
+        <div className="float-card float-card--bottom">
+          <div className="fc-icon">🧘‍♀️</div>
+          <div>
+            <div className="fc-title">Ketenangan</div>
+            <div className="fc-sub">+15% Hari ini</div>
           </div>
         </div>
       </div>

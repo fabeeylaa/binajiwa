@@ -164,32 +164,60 @@
   font-weight: 500;
 }
 
+/* ===== HERO VISUAL — SATU BLOK LENGKAP ===== */
 .hero-visual {
   position: relative;
+  width: 100%;
+  max-width: 400px;
+  justify-self: center;
+  isolation: isolate;
+}
+
+.hero-visual::before {
+  content: '';
+  position: absolute;
+  width: 88%;
+  aspect-ratio: 1;
+  right: -8%;
+  bottom: -8%;
+  border-radius: 50%;
+  background: var(--mint-300);
+  opacity: 0.55;
+  z-index: -1;
 }
 
 .hero-illustration {
-  border-radius: var(--radius-xl);
+  position: relative;
+  aspect-ratio: 5 / 6;
+  min-height: 0;
+  padding: 0;
+  border-radius: 50% 50% 28px 28px / 42% 42% 28px 28px;
   overflow: hidden;
-  background: linear-gradient(135deg, var(--mint-100) 0%, var(--mint-300) 50%, var(--primary) 100%);
-  padding: 3rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 420px;
-  box-shadow: var(--shadow-lg);
+  background-color: var(--mint-100);
+  box-shadow: 0 24px 48px -16px rgba(22, 101, 52, 0.28);
+}
+
+.hero-illustration::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(22, 163, 74, 0.35) 0%, rgba(22, 163, 74, 0) 45%);
+  pointer-events: none;
 }
 
 .float-card {
   position: absolute;
-  background: var(--white);
-  border-radius: 1.35rem;
-  padding: 1rem 1.125rem;
-  box-shadow: var(--shadow-lg);
+  z-index: 2;
   display: flex;
   align-items: center;
   gap: 0.875rem;
+  padding: 1rem 1.125rem;
+  background: var(--white, #fff);
+  border-radius: 1.35rem;
+  box-shadow: 0 12px 32px -8px rgba(22, 101, 52, 0.25);
   backdrop-filter: blur(8px);
+  white-space: nowrap;
+  animation: hero-float 5s ease-in-out infinite;
 }
 
 .float-card .fc-icon {
@@ -208,52 +236,43 @@
 .float-card .fc-sub {
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 12px;
-  color: var(--on-surface-variant);
   font-weight: 500;
+  color: var(--on-surface-variant);
 }
 
 .float-card--top {
-  top: 20px;
-  right: -20px;
+  top: 26%;
+  right: -24px;
+  bottom: auto;
+  left: auto;
 }
 
 .float-card--bottom {
-  bottom: 40px;
-  left: -20px;
+  bottom: 14%;
+  left: -28px;
+  top: auto;
+  right: auto;
+  animation-delay: -2.5s;
+}
+
+@keyframes hero-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .float-card { animation: none; }
 }
 
 @media (max-width: 768px) {
-  .hero {
-    grid-template-columns: 1fr;
-    gap: 3rem;
-    padding: 7rem var(--margin-mobile) 3rem;
-  }
-
-  .hero::before {
-    bottom: -300px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 500px;
-    height: 500px;
-    opacity: 0.06;
-  }
-
-  .hero-sub {
-    max-width: 100%;
-  }
-
-  .hero-proof {
-    justify-content: flex-start;
-  }
-
-  .hero-illustration {
-    min-height: 300px;
-    padding: 2rem;
-  }
+  .hero-visual { max-width: 320px; }
 
   .float-card--top,
   .float-card--bottom {
     position: static;
     margin: 0.5rem 0;
+    animation: none;
   }
 }
+
+body { overflow-x: hidden; }
