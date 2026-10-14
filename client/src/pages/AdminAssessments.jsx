@@ -267,7 +267,7 @@ function AdminAssessments() {
             <h3 className="section-title">Hasil Flagged ({flaggedResults.length})</h3>
             <span className="section-badge" style={{ background: '#ef444415', color: '#ef4444' }}>Perlu Perhatian</span>
           </div>
-          <div className="results-grid">
+          <div className="results-grid" style={{ alignItems: 'start' }}>
             {flaggedResults.map((result) => (
               <AssessmentCard
                 key={result.id}
@@ -287,7 +287,7 @@ function AdminAssessments() {
           <div className="section-header">
             <h3 className="section-title">Hasil Normal ({normalResults.length})</h3>
           </div>
-          <div className="results-grid">
+          <div className="results-grid" style={{ alignItems: 'start' }}>
             {normalResults.slice(
               (currentPage - 1) * resultsPerPage,
               currentPage * resultsPerPage

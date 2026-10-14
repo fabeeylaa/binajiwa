@@ -24,6 +24,9 @@ function AdminArticles() {
   });
   const [formError, setFormError] = useState('');
   const [viewingArticle, setViewingArticle] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteError, setDeleteError] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetchArticles();
@@ -41,19 +44,38 @@ function AdminArticles() {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Apakah Anda yakin ingin menghapus artikel ini?')) return;
+  const openDeleteModal = (article) => {
+    setDeleteError('');
+    setDeleteTarget(article);
+  };
+
+  const closeDeleteModal = () => {
+    if (deleting) return;
+    setDeleteTarget(null);
+    setDeleteError('');
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    setDeleteError('');
     try {
-      const res = await fetch(`/api/articles/admin/${id}`, { method: 'DELETE', credentials: 'include' });
+      const res = await fetch(`/api/articles/admin/${deleteTarget.id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
       if (res.ok) {
-        setArticles(articles.filter(a => a.id !== id));
+        setArticles((prev) => prev.filter((a) => a.id !== deleteTarget.id));
+        setDeleteTarget(null);
       } else {
-        const data = await res.json();
-        alert(data.message || 'Gagal menghapus artikel');
+        const data = await res.json().catch(() => ({}));
+        setDeleteError(data.message || 'Gagal menghapus artikel');
       }
     } catch (err) {
       console.error(err);
-      alert('Gagal menghapus artikel');
+      setDeleteError('Gagal menghapus artikel');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -256,7 +278,7 @@ function AdminArticles() {
                         <button
                           className="btn-icon btn-danger"
                           title="Hapus"
-                          onClick={() => handleDelete(article.id)}
+                          onClick={() => openDeleteModal(article)}
                         >
                           <Trash2 size={16} strokeWidth={2} />
                         </button>
@@ -400,6 +422,50 @@ function AdminArticles() {
           </div>
         </div>
       )}
+
+     {/* Delete Confirmation Modal */}
+{deleteTarget && (
+  <div className="modal-backdrop" onClick={closeDeleteModal}>
+    <div
+      className="modal-card card"
+      onClick={(e) => e.stopPropagation()}
+      style={{ width: '340px', maxWidth: '90vw', padding: '20px' }}
+    >
+      <div className="modal-header" style={{ marginBottom: 0 }}>
+        <h3 style={{ fontSize: '16px', margin: 0 }}>Hapus Artikel</h3>
+        <button className="btn-icon" onClick={closeDeleteModal}>
+          <X size={16} />
+        </button>
+      </div>
+
+      {deleteError && (
+        <div className="form-alert error" style={{ marginTop: '12px' }}>
+          <AlertCircle size={14} />
+          <span>{deleteError}</span>
+        </div>
+      )}
+
+      <p style={{ margin: '12px 0 16px', fontSize: '13px', lineHeight: 1.5, color: 'var(--on-surface-variant)' }}>
+        Yakin ingin menghapus <b style={{ color: 'var(--ink-900)' }}>"{deleteTarget.title}"</b>?
+        Tindakan ini tidak bisa dibatalkan.
+      </p>
+
+      <div className="modal-footer" style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', padding: 0, margin: 0, border: 'none' }}>
+        <button className="btn btn-sm btn-ghost" onClick={closeDeleteModal} disabled={deleting}>
+          Batal
+        </button>
+        <button
+          className="btn btn-sm btn-primary"
+          style={{ background: '#ef4444', borderColor: '#ef4444' }}
+          onClick={confirmDelete}
+          disabled={deleting}
+        >
+          {deleting ? 'Menghapus...' : 'Hapus'}
+        </button>
+        </div>
+      </div>
+     </div>
+    )}
     </div>
   );
 }

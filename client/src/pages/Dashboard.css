@@ -1298,25 +1298,31 @@
 .stats-grid {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
 }
 
 .stat-card {
   background: var(--surface);
   border: 1px solid var(--outline-variant);
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: 14px;
+  padding: 24px;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 20px;
   box-shadow: var(--shadow-card);
+  transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-float);
 }
 
 .stat-card-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1330,17 +1336,19 @@
 }
 
 .stat-card-value {
-  font-size: 20px;
+  font-size: 28px;
   font-weight: 700;
   color: var(--ink-900);
   font-family: 'Poppins', sans-serif;
+  line-height: 1.1;
 }
 
 .stat-card-label {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--on-surface-variant);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  font-weight: 600;
 }
 
 /* Charts Grid */
@@ -1405,16 +1413,17 @@
 
 /* Pie Chart Specific */
 .pie-chart-wrapper {
-  position: relative;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 8px;
   height: 100%;
 }
 
 .pie-center {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  position: relative;
   text-align: center;
+  padding: 8px 0;
+  order: 2;
 }
 
 .pie-total {

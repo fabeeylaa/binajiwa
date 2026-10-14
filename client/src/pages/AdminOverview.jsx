@@ -1,119 +1,173 @@
 import { useEffect, useState } from 'react';
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell
 } from 'recharts';
 import {
-  Users, FileText, ClipboardCheck, Target, TrendingUp, Activity,
-  ArrowUpRight, ArrowDownRight, Minus, Edit3
+  Users, FileText, ClipboardCheck, Target, RefreshCw,
+  ArrowUpRight, ArrowDownRight, Minus
 } from 'lucide-react';
 import '../pages/Dashboard.css';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
-function StatCard({ title, value, subtitle, icon: Icon, trend, trendLabel, color = 'var(--primary)' }) {
-  const trendIcon = trend > 0 ? ArrowUpRight : trend < 0 ? ArrowDownRight : Minus;
-  const trendColor = trend > 0 ? '#10b981' : trend < 0 ? '#ef4444' : 'var(--on-surface-variant)';
-  
-  return (
-    <div className="kpi-card">
-      <div className="kpi-header">
-        <div className="kpi-icon" style={{ background: `${color}15`, color }}>
-          <Icon size={20} strokeWidth={2} />
-        </div>
-        {trend !== null && (
-          <div className="kpi-trend" style={{ color: trendColor }}>
-            <trendIcon size={14} strokeWidth={2.5} />
-            <span>{trendLabel}</span>
-          </div>
-        )}
-      </div>
-      <div className="kpi-value">{value.toLocaleString('id-ID')}</div>
-      <div className="kpi-label">{title}</div>
-      {subtitle && <div className="kpi-sub">{subtitle}</div>}
-    </div>
-  );
-}
+const safeDiv = (a, b) => (b > 0 ? a / b : 0);
+const pct = (a, b) => Math.min(100, safeDiv(a, b) * 100);
 
-function MiniLineChart({ data, color = '#3b82f6' }) {
-  if (!data?.length) return <div className="mini-chart-placeholder" />;
-  
-  const chartData = [...data].reverse().map((d, i) => ({
+const tooltipStyle = {
+  background: '#fff',
+  border: 'none',
+  borderRadius: '12px',
+  boxShadow: '0 8px 24px rgba(20,51,42,.12)',
+  fontSize: '12px',
+  padding: '8px 12px'
+};
+
+const css = `
+.ov{display:flex;flex-direction:column;gap:20px}
+.ov-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.ov-title{font-size:24px;font-weight:700;margin:0;color:var(--ink-900,#14332a)}
+.ov-sub{margin:4px 0 0;font-size:13px;color:var(--on-surface-variant,#5f7a6e)}
+.ov-head-right{display:flex;align-items:center;gap:10px}
+.ov-pill{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:999px;font-size:13px;font-weight:600;background:#fff}
+.ov-pill i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.ov-refresh{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:999px;border:none;background:var(--ink-900,#14332a);color:#fff;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s}
+.ov-refresh:hover{opacity:.88}
+.ov-card{background:#fff;border-radius:20px;padding:20px}
+.ov-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.ov-kpi{display:flex;flex-direction:column;gap:6px;transition:transform .15s}
+.ov-kpi:hover{transform:translateY(-2px)}
+.ov-kpi-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.ov-icon{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center}
+.ov-chip{display:inline-flex;align-items:center;gap:2px;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:600}
+.ov-value{font-size:30px;font-weight:700;line-height:1.1;color:var(--ink-900,#14332a)}
+.ov-label{font-size:13px;font-weight:600;color:var(--ink-900,#14332a)}
+.ov-hint{font-size:12px;color:var(--on-surface-variant,#5f7a6e)}
+.ov-bar{height:6px;border-radius:99px;background:#eef3f0;overflow:hidden;margin-top:8px}
+.ov-bar span{display:block;height:100%;border-radius:99px}
+.ov-link{font-size:12px;font-weight:600;color:var(--primary,#16a34a);text-decoration:none;margin-top:8px}
+.ov-link:hover{text-decoration:underline}
+.ov-charts{display:grid;grid-template-columns:1.5fr 1fr;gap:16px}
+.ov-card-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px}
+.ov-card-title{font-size:16px;font-weight:700;margin:0;color:var(--ink-900,#14332a)}
+.ov-card-sub{font-size:12px;color:var(--on-surface-variant,#5f7a6e)}
+.ov-area{height:240px}
+.ov-empty{height:240px;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--on-surface-variant,#5f7a6e)}
+.ov-donut{position:relative;height:190px}
+.ov-donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+.ov-donut-total{font-size:28px;font-weight:700;color:var(--ink-900,#14332a);line-height:1}
+.ov-donut-label{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--on-surface-variant,#5f7a6e);margin-top:4px}
+.ov-legend{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.ov-legend-row{display:flex;align-items:center;gap:10px;font-size:13px}
+.ov-dot{width:10px;height:10px;border-radius:4px;flex-shrink:0}
+.ov-legend-name{flex:1;color:var(--ink-900,#14332a)}
+.ov-legend-count{font-weight:700;color:var(--ink-900,#14332a)}
+.ov-legend-pct{width:42px;text-align:right;color:var(--on-surface-variant,#5f7a6e);font-size:12px}
+.ov-strip{display:grid;grid-template-columns:repeat(4,1fr);padding:8px 0}
+.ov-strip-item{display:flex;align-items:center;gap:14px;padding:12px 24px;border-right:1px solid #eef3f0}
+.ov-strip-item:last-child{border-right:none}
+.ov-strip-value{font-size:22px;font-weight:700;color:var(--ink-900,#14332a);line-height:1.1}
+.ov-strip-label{font-size:12px;color:var(--on-surface-variant,#5f7a6e);margin-top:2px}
+@media (max-width:1100px){
+  .ov-kpis{grid-template-columns:repeat(2,1fr)}
+  .ov-charts{grid-template-columns:1fr}
+  .ov-strip{grid-template-columns:repeat(2,1fr)}
+  .ov-strip-item:nth-child(2){border-right:none}
+}
+@media (max-width:600px){
+  .ov-kpis,.ov-strip{grid-template-columns:1fr}
+  .ov-strip-item{border-right:none;border-bottom:1px solid #eef3f0}
+  .ov-strip-item:last-child{border-bottom:none}
+}
+`;
+
+function GrowthChart({ data }) {
+  if (!data?.length) return <div className="ov-empty">Belum ada data pendaftaran</div>;
+
+  const chartData = [...data].reverse().map((d) => ({
     name: new Date(d.date).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric' }),
     value: d.count
   }));
 
   return (
-    <ResponsiveContainer width="100%" height="100%">
-      <LineChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="var(--outline-variant)" vertical={false} />
-        <XAxis dataKey="name" tick={{ fontSize: 10, fill: 'var(--on-surface-variant)' }} axisLine={false} tickLine={false} />
-        <YAxis axisLine={false} tickLine={false} tick={false} />
-        <Tooltip 
-          contentStyle={{ 
-            background: 'var(--surface)', 
-            border: '1px solid var(--outline)', 
-            borderRadius: '8px',
-            boxShadow: 'var(--shadow-float)'
-          }}
-          formatter={(v) => [v.toLocaleString('id-ID'), 'User Baru']}
-        />
-        <Line
-          type="monotone"
-          dataKey="value"
-          stroke={color}
-          strokeWidth={2}
-          dot={false}
-          activeDot={{ r: 4, fill: color }}
-        />
-      </LineChart>
-    </ResponsiveContainer>
+    <div className="ov-area">
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={chartData} margin={{ top: 10, right: 12, left: -20, bottom: 0 }}>
+          <defs>
+            <linearGradient id="ovGrowth" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.3} />
+              <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="4 4" stroke="#e6eee9" vertical={false} />
+          <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#7a9186' }} axisLine={false} tickLine={false} />
+          <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: '#7a9186' }} axisLine={false} tickLine={false} />
+          <Tooltip
+            contentStyle={tooltipStyle}
+            cursor={{ stroke: '#3b82f6', strokeDasharray: '4 4' }}
+            formatter={(v) => [v.toLocaleString('id-ID'), 'User baru']}
+          />
+          <Area
+            type="monotone"
+            dataKey="value"
+            stroke="#3b82f6"
+            strokeWidth={3}
+            fill="url(#ovGrowth)"
+            dot={{ r: 4, fill: '#fff', stroke: '#3b82f6', strokeWidth: 2 }}
+            activeDot={{ r: 6, fill: '#3b82f6', stroke: '#fff', strokeWidth: 2 }}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
   );
 }
 
-function AssessmentPieChart({ data }) {
-  if (!data?.length) return <div className="mini-chart-placeholder" />;
-  
+function DistributionChart({ data }) {
+  if (!data?.length) return <div className="ov-empty">Belum ada hasil assessment</div>;
+
   const total = data.reduce((sum, d) => sum + d.count, 0);
-  
+
   return (
-    <div className="pie-chart-wrapper">
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <Pie
-            data={data}
-            cx="50%"
-            cy="50%"
-            innerRadius={45}
-            outerRadius={60}
-            paddingAngle={2}
-            dataKey="count"
-            nameKey="category_label"
-            label={({ category_label, count, percent }) => 
-              `${category_label} ${(percent * 100).toFixed(0)}%`
-            }
-            labelLine={false}
-          >
-            {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-            ))}
-          </Pie>
-          <Tooltip 
-            contentStyle={{ 
-              background: 'var(--surface)', 
-              border: '1px solid var(--outline)', 
-              borderRadius: '8px',
-              boxShadow: 'var(--shadow-float)'
-            }}
-            formatter={(v, name) => [v.toLocaleString('id-ID'), name]}
-          />
-        </PieChart>
-      </ResponsiveContainer>
-      <div className="pie-center">
-        <div className="pie-total">{total.toLocaleString('id-ID')}</div>
-        <div className="pie-total-label">Total Assessment</div>
+    <>
+      <div className="ov-donut">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={data}
+              dataKey="count"
+              nameKey="category_label"
+              cx="50%"
+              cy="50%"
+              innerRadius={58}
+              outerRadius={82}
+              paddingAngle={3}
+              cornerRadius={6}
+              stroke="none"
+            >
+              {data.map((_, i) => (
+                <Cell key={i} fill={COLORS[i % COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip contentStyle={tooltipStyle} formatter={(v, name) => [v.toLocaleString('id-ID'), name]} />
+          </PieChart>
+        </ResponsiveContainer>
+        <div className="ov-donut-center">
+          <div className="ov-donut-total">{total.toLocaleString('id-ID')}</div>
+          <div className="ov-donut-label">Total</div>
+        </div>
       </div>
-    </div>
+
+      <div className="ov-legend">
+        {data.map((item, i) => (
+          <div key={item.category_label} className="ov-legend-row">
+            <span className="ov-dot" style={{ background: COLORS[i % COLORS.length] }} />
+            <span className="ov-legend-name">{item.category_label}</span>
+            <span className="ov-legend-count">{item.count}</span>
+            <span className="ov-legend-pct">{safeDiv(item.count, total) * 100 > 0 ? (safeDiv(item.count, total) * 100).toFixed(0) : 0}%</span>
+          </div>
+        ))}
+      </div>
+    </>
   );
 }
 
@@ -127,12 +181,12 @@ function AdminOverview() {
 
   const fetchStats = () => {
     fetch('/api/admin/stats')
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         setStats(data.stats);
         setLoading(false);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
         setLoading(false);
       });
@@ -141,7 +195,7 @@ function AdminOverview() {
   if (loading) return (
     <div className="tab-panel" style={{ minHeight: '400px' }}>
       <div className="skeleton-grid">
-        {[1,2,3,4].map(i => <div key={i} className="skeleton-card" />)}
+        {[1, 2, 3, 4].map((i) => <div key={i} className="skeleton-card" />)}
       </div>
     </div>
   );
@@ -150,204 +204,118 @@ function AdminOverview() {
   const userTrend = stats.userTrend || [];
   const lastWeekUsers = userTrend.slice(0, 7).reduce((sum, d) => sum + d.count, 0);
   const prevWeekUsers = userTrend.slice(7, 14).reduce((sum, d) => sum + d.count, 0);
-  const userTrendPct = prevWeekUsers > 0 ? ((lastWeekUsers - prevWeekUsers) / prevWeekUsers * 100).toFixed(1) : 0;
+  const userTrendPct = prevWeekUsers > 0 ? ((lastWeekUsers - prevWeekUsers) / prevWeekUsers) * 100 : 0;
 
-  const retentionRate = ((stats.activeUsers / stats.users) * 100).toFixed(1);
-  const engagementScore = ((stats.assessments / Math.max(stats.users, 1)) * 100).toFixed(0);
-  
+  const retentionRate = pct(stats.activeUsers, stats.users);
+  const habitRate = pct(stats.completedHabits, stats.habits);
+  const assessmentPerUser = safeDiv(stats.assessments, stats.users);
+  const articlePerUser = safeDiv(stats.articles, stats.users);
+  const engagementScore = assessmentPerUser * 100;
+
   const getHealthStatus = () => {
-    if (retentionRate > 50 && engagementScore > 70) return { label: 'Sehat', color: '#10b981', icon: '●' };
-    if (retentionRate > 30 || engagementScore > 40) return { label: 'Stabil', color: '#f59e0b', icon: '●' };
-    return { label: 'Perlu Perhatian', color: '#ef4444', icon: '●' };
+    if (retentionRate > 50 && engagementScore > 70) return { label: 'Sehat', color: '#10b981' };
+    if (retentionRate > 30 || engagementScore > 40) return { label: 'Stabil', color: '#f59e0b' };
+    return { label: 'Perlu Perhatian', color: '#ef4444' };
   };
-
   const health = getHealthStatus();
 
+  const TrendIcon = userTrendPct > 0 ? ArrowUpRight : userTrendPct < 0 ? ArrowDownRight : Minus;
+  const trendColor = userTrendPct > 0 ? '#10b981' : userTrendPct < 0 ? '#ef4444' : '#7a9186';
+
+  const kpis = [
+    { title: 'Pengguna Baru', value: lastWeekUsers, hint: '7 hari terakhir', icon: Users, color: '#3b82f6', trend: true },
+    { title: 'Total Assessment', value: stats.assessments, hint: `${assessmentPerUser.toFixed(1)} per pengguna`, icon: ClipboardCheck, color: '#f59e0b' },
+    { title: 'Artikel Edukasi', value: stats.articles, hint: 'Artikel tersedia', icon: FileText, color: '#10b981', link: true },
+    { title: 'Habit Selesai', value: stats.completedHabits, hint: `Dari ${stats.habits} habit`, icon: Target, color: '#8b5cf6', progress: habitRate }
+  ];
+
+  const strip = [
+    { label: 'Retensi aktif', value: `${retentionRate.toFixed(1)}%`, icon: Users, color: '#3b82f6' },
+    { label: 'Artikel per user', value: articlePerUser.toFixed(1), icon: FileText, color: '#10b981' },
+    { label: 'Assessment per user', value: assessmentPerUser.toFixed(1), icon: ClipboardCheck, color: '#f59e0b' },
+    { label: 'Habit completion', value: `${habitRate.toFixed(1)}%`, icon: Target, color: '#8b5cf6' }
+  ];
+
   return (
-    <div className="tab-panel admin-overview">
-      {/* Health Hero */}
-      <div className="health-hero">
-        <div className="health-indicator">
-          <div className="health-dot" style={{ background: health.color }}>
-            <div className="health-pulse" style={{ background: health.color }} />
-          </div>
-          <div className="health-info">
-            <div className="health-label">Status Platform</div>
-            <div className="health-status" style={{ color: health.color }}>{health.label}</div>
-          </div>
-        </div>
-        <div className="health-metrics">
-          <div className="health-metric">
-            <span className="metric-value">{retentionRate}%</span>
-            <span className="metric-label">Retensi 7 hari</span>
-          </div>
-          <div className="health-metric">
-            <span className="metric-value">{engagementScore}%</span>
-            <span className="metric-label">Skor Engagement</span>
-          </div>
-        </div>
-        <button className="btn btn-secondary" onClick={fetchStats}>
-          <Activity size={16} strokeWidth={2} />
-          <span>Refresh Data</span>
-        </button>
-      </div>
+    <div className="tab-panel admin-overview ov">
+      <style>{css}</style>
 
-      {/* Priority Dashboard */}
-      <div className="priority-grid">
-        <div className="priority-card">
-          <div className="priority-icon" style={{ background: '#3b82f615', color: '#3b82f6' }}>
-            <Users size={20} strokeWidth={2} />
-          </div>
-          <div className="priority-content">
-            <div className="priority-title">Pengguna Baru</div>
-            <div className="priority-value">{lastWeekUsers}</div>
-            <div className="priority-subtitle">7 hari terakhir</div>
-          </div>
-          <div className="priority-trend" style={{ color: userTrendPct > 0 ? '#10b981' : '#ef4444' }}>
-            {userTrendPct > 0 ? '↑' : '↓'} {Math.abs(userTrendPct)}%
-          </div>
+      {/* Header */}
+      <div className="ov-head">
+        <div>
+          <h1 className="ov-title">Overview</h1>
+          <p className="ov-sub">Ringkasan aktivitas platform SehatJiwa</p>
         </div>
-
-        <div className="priority-card">
-          <div className="priority-icon" style={{ background: '#f59e0b15', color: '#f59e0b' }}>
-            <ClipboardCheck size={20} strokeWidth={2} />
-          </div>
-          <div className="priority-content">
-            <div className="priority-title">Screening Aktif</div>
-            <div className="priority-value">{stats.assessments}</div>
-            <div className="priority-subtitle">Total assessment</div>
-          </div>
-          <div className="priority-badge" style={{ background: '#f59e0b10', color: '#f59e0b' }}>
-            {((stats.assessments / Math.max(stats.users, 1)) * 100).toFixed(0)}% engagement
-          </div>
-        </div>
-
-        <div className="priority-card">
-          <div className="priority-icon" style={{ background: '#10b98115', color: '#10b981' }}>
-            <FileText size={20} strokeWidth={2} />
-          </div>
-          <div className="priority-content">
-            <div className="priority-title">Konten Edukasi</div>
-            <div className="priority-value">{stats.articles}</div>
-            <div className="priority-subtitle">Artikel tersedia</div>
-          </div>
-          <a href="/admin/articles" className="priority-link">
-            <Edit3 size={14} strokeWidth={2} />
-            <span>Kelola</span>
-          </a>
-        </div>
-
-        <div className="priority-card">
-          <div className="priority-icon" style={{ background: '#8b5cf615', color: '#8b5cf6' }}>
-            <Target size={20} strokeWidth={2} />
-          </div>
-          <div className="priority-content">
-            <div className="priority-title">Habit Tracker</div>
-            <div className="priority-value">{stats.completedHabits}</div>
-            <div className="priority-subtitle">Dari {stats.habits} total</div>
-          </div>
-          <div className="priority-progress">
-            <div 
-              className="progress-bar" 
-              style={{ 
-                width: `${(stats.completedHabits / Math.max(stats.habits, 1) * 100).toFixed(1)}%`,
-                background: '#8b5cf6'
-              }}
-            />
-          </div>
+        <div className="ov-head-right">
+          <span className="ov-pill" style={{ color: health.color }}>
+            <i style={{ background: health.color }} />
+            {health.label}
+          </span>
+          <button className="ov-refresh" onClick={fetchStats}>
+            <RefreshCw size={14} strokeWidth={2.5} />
+            Refresh
+          </button>
         </div>
       </div>
 
-      {/* Data Sections */}
-      <div className="dashboard-sections">
-        {/* Growth Chart */}
-        <div className="chart-section">
-          <div className="section-header">
-            <div>
-              <h3 className="section-title">Pertumbuhan Pengguna</h3>
-              <p className="section-subtitle">7 hari terakhir</p>
+      {/* KPI */}
+      <div className="ov-kpis">
+        {kpis.map((k) => (
+          <div key={k.title} className="ov-card ov-kpi">
+            <div className="ov-kpi-top">
+              <div className="ov-icon" style={{ background: `${k.color}18`, color: k.color }}>
+                <k.icon size={20} strokeWidth={2} />
+              </div>
+              {k.trend && (
+                <span className="ov-chip" style={{ background: `${trendColor}18`, color: trendColor }}>
+                  <TrendIcon size={14} strokeWidth={2.5} />
+                  {Math.abs(userTrendPct).toFixed(0)}%
+                </span>
+              )}
             </div>
-            <div className="section-actions">
-              <TrendingUp size={18} strokeWidth={2} style={{ color: 'var(--on-surface-variant)' }} />
-            </div>
+            <div className="ov-value">{Number(k.value).toLocaleString('id-ID')}</div>
+            <div className="ov-label">{k.title}</div>
+            <div className="ov-hint">{k.hint}</div>
+            {k.progress !== undefined && (
+              <div className="ov-bar"><span style={{ width: `${k.progress}%`, background: k.color }} /></div>
+            )}
+            {k.link && <a href="/admin/articles" className="ov-link">Kelola artikel →</a>}
           </div>
-          <div className="chart-card">
-            <div className="chart-area" style={{ height: '200px' }}>
-              <MiniLineChart data={userTrend} color="#3b82f6" />
-            </div>
+        ))}
+      </div>
+
+      {/* Charts */}
+      <div className="ov-charts">
+        <div className="ov-card">
+          <div className="ov-card-head">
+            <h3 className="ov-card-title">Pertumbuhan Pengguna</h3>
+            <span className="ov-card-sub">{lastWeekUsers} pendaftar baru minggu ini</span>
           </div>
-          <div className="chart-footer">
-            <span className="insight-dot" style={{ background: '#3b82f6' }} />
-            <span className="chart-footer-text">{lastWeekUsers} pendaftar baru minggu ini</span>
-          </div>
+          <GrowthChart data={userTrend} />
         </div>
 
-        {/* Assessment Distribution */}
-        <div className="chart-section">
-          <div className="section-header">
-            <div>
-              <h3 className="section-title">Distribusi Hasil</h3>
-              <p className="section-subtitle">Kategori screening terakhir</p>
-            </div>
-            <div className="section-actions">
-              <ClipboardCheck size={18} strokeWidth={2} style={{ color: 'var(--on-surface-variant)' }} />
-            </div>
+        <div className="ov-card">
+          <div className="ov-card-head">
+            <h3 className="ov-card-title">Distribusi Hasil</h3>
+            <span className="ov-card-sub">Kategori screening</span>
           </div>
-          <div className="chart-card">
-            <div className="chart-area" style={{ height: '180px' }}>
-              <AssessmentPieChart data={stats.assessmentStats} />
-            </div>
-            <div className="chart-legend">
-              {stats.assessmentStats?.slice(0, 4).map((item, i) => (
-                <div key={item.category_label} className="legend-item">
-                  <span className="legend-color" style={{ background: COLORS[i % COLORS.length] }} />
-                  <span className="legend-label">{item.category_label}</span>
-                  <span className="legend-count">{item.count}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          <DistributionChart data={stats.assessmentStats} />
         </div>
+      </div>
 
-        {/* Quick Stats Grid */}
-        <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-card-icon" style={{ background: '#3b82f615', color: '#3b82f6' }}>
-              <Users size={18} strokeWidth={2} />
+      {/* Strip */}
+      <div className="ov-card ov-strip">
+        {strip.map((s) => (
+          <div key={s.label} className="ov-strip-item">
+            <div className="ov-icon" style={{ background: `${s.color}18`, color: s.color, width: 38, height: 38 }}>
+              <s.icon size={18} strokeWidth={2} />
             </div>
-            <div className="stat-card-content">
-              <div className="stat-card-value">{((stats.activeUsers / stats.users) * 100).toFixed(1)}%</div>
-              <div className="stat-card-label">Retensi Aktif</div>
-            </div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-card-icon" style={{ background: '#10b98115', color: '#10b981' }}>
-              <FileText size={18} strokeWidth={2} />
-            </div>
-            <div className="stat-card-content">
-              <div className="stat-card-value">{(stats.articles / Math.max(stats.users, 1)).toFixed(1)}</div>
-              <div className="stat-card-label">Artikel per User</div>
+            <div>
+              <div className="ov-strip-value">{s.value}</div>
+              <div className="ov-strip-label">{s.label}</div>
             </div>
           </div>
-          <div className="stat-card">
-            <div className="stat-card-icon" style={{ background: '#f59e0b15', color: '#f59e0b' }}>
-              <ClipboardCheck size={18} strokeWidth={2} />
-            </div>
-            <div className="stat-card-content">
-              <div className="stat-card-value">{(stats.assessments / Math.max(stats.users, 1)).toFixed(1)}</div>
-              <div className="stat-card-label">Assessment/User</div>
-            </div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-card-icon" style={{ background: '#8b5cf615', color: '#8b5cf6' }}>
-              <Target size={18} strokeWidth={2} />
-            </div>
-            <div className="stat-card-content">
-              <div className="stat-card-value">{(stats.completedHabits / Math.max(stats.habits, 1) * 100).toFixed(1)}%</div>
-              <div className="stat-card-label">Habit Completion</div>
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );
