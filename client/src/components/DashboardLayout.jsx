@@ -6,12 +6,12 @@ import logoSehatJiwa from '../assets/Logoosehatjiwa.jpeg';
 function DashboardLayout({ user, children, menuItems }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const activeSection = menuItems.filter(item => location.pathname === item.path || location.pathname.startsWith(item.path + '/')).sort((a, b) => b.path.length - a.path.length)[0] || menuItems[0];
   const profilePath = user?.role === 'admin' ? '/admin/profile' : '/dashboard/profile';
   const isProfile = location.pathname === profilePath;
 
-  // id aktif tunggal supaya tombol Profil ikut punya indikator
   const activeId = isProfile ? 'profile' : activeSection.id;
 
   const linkRefs = useRef({});
@@ -22,7 +22,6 @@ function DashboardLayout({ user, children, menuItems }) {
     if (el) setIndicator({ top: el.offsetTop, height: el.offsetHeight });
   }, [activeId, location.pathname]);
 
-  // posisi meleset kalau window di-resize tanpa pindah halaman
   useEffect(() => {
     const onResize = () => {
       const el = linkRefs.current[activeId];
@@ -35,10 +34,10 @@ function DashboardLayout({ user, children, menuItems }) {
   return (
     <div className="shell">
       <div
-        className="sidebar-overlay"
-        onClick={() => document.querySelector('.sidebar')?.classList.remove('open')}
+        className={`sidebar-overlay ${sidebarOpen ? 'open' : ''}`}
+        onClick={() => setSidebarOpen(false)}
       ></div>
-      <aside className="sidebar">
+      <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sb-logo">
           <img src={logoSehatJiwa} alt="Logo SehatJiwa" style={{ width: '40px', height: '40px', objectFit: 'contain', flexShrink: 0 }} />
           <span>SehatJiwa</span>
@@ -58,9 +57,9 @@ function DashboardLayout({ user, children, menuItems }) {
               ref={(el) => { linkRefs.current[item.id] = el; }}
               className={`sb-link ${activeId === item.id ? 'active' : ''}`}
               aria-current={activeId === item.id ? 'page' : undefined}
-              onClick={() => {
+               onClick={() => {
                 navigate(item.path);
-                document.querySelector('.sidebar')?.classList.remove('open');
+                setSidebarOpen(false);
               }}
             >
               {item.icon}
@@ -73,9 +72,9 @@ function DashboardLayout({ user, children, menuItems }) {
               ref={(el) => { linkRefs.current.profile = el; }}
               className={`sb-link ${activeId === 'profile' ? 'active' : ''}`}
               aria-current={activeId === 'profile' ? 'page' : undefined}
-              onClick={() => {
+               onClick={() => {
                 navigate(profilePath);
-                document.querySelector('.sidebar')?.classList.remove('open');
+                setSidebarOpen(false);
               }}
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -99,10 +98,10 @@ function DashboardLayout({ user, children, menuItems }) {
 
       <main className="main">
         <div className="mobile-topbar">
-          <button
+           <button
             className="burger-btn"
             aria-label="Buka menu navigasi"
-            onClick={() => document.querySelector('.sidebar')?.classList.add('open')}
+            onClick={() => setSidebarOpen(true)}
           >
             <span></span><span></span><span></span>
           </button>
