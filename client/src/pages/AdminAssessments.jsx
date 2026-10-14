@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { 
   Search, Calendar, User, Activity, TrendingDown, 
-  TrendingUp, Minus, Filter, X, ChevronDown, Download, 
-  AlertCircle, CheckCircle, Info
+  TrendingUp, Minus, Filter, X, Download, 
+  AlertCircle, ChevronDown, ChevronUp
 } from 'lucide-react';
 import '../pages/Dashboard.css';
 
@@ -12,7 +12,10 @@ function AdminAssessments() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [dateFilter, setDateFilter] = useState('all');
-  const [viewingDetail, setViewingDetail] = useState(null);
+  const [expandedId, setExpandedId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [showExportDialog, setShowExportDialog] = useState(false);
+  const resultsPerPage = 12;
 
   useEffect(() => {
     fetchResults();
@@ -30,10 +33,8 @@ function AdminAssessments() {
     }
   };
 
-  // Unique categories from results
   const categories = [...new Set(results.map(r => r.category_label))];
   
-  // Calculate stats
   const stats = {
     total: results.length,
     flagged: results.filter(r => r.flagged).length,
@@ -44,7 +45,18 @@ function AdminAssessments() {
     avgScore: results.length ? (results.reduce((sum, r) => sum + r.total_score, 0) / results.length).toFixed(1) : 0
   };
 
-  // Filter results
+  const getCategoryColor = (category) => {
+    const colorMap = {
+      'Ringan': '#10b981',
+      'Sedang': '#f59e0b',
+      'Berat': '#ef4444',
+      'Normal': '#3b82f6',
+      'Wasapada': '#f59e0b',
+      'Darurat': '#ef4444',
+    };
+    return colorMap[category] || '#6b7280';
+  };
+
   const filteredResults = results.filter(result => {
     const matchesSearch = result.user_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          result.user_email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -63,23 +75,59 @@ function AdminAssessments() {
     return matchesSearch && matchesCategory && matchesDate;
   });
 
-  // Get category color based on severity
-  const getCategoryColor = (category) => {
-    const colorMap = {
-      'Ringan': '#10b981',
-      'Sedang': '#f59e0b',
-      'Berat': '#ef4444',
-      'Normal': '#3b82f6',
-      'Wasapada': '#f59e0b',
-      'Darurat': '#ef4444',
-    };
-    return colorMap[category] || '#6b7280';
+  const flaggedResults = filteredResults.filter(r => r.flagged);
+  const normalResults = filteredResults.filter(r => !r.flagged);
+
+  const healthStatus = stats.total > 0 
+    ? ((stats.flagged / stats.total) * 100).toFixed(1) 
+    : 0;
+  
+  const getHealthLevel = () => {
+    const pct = parseFloat(healthStatus);
+    if (pct < 5) return { label: 'Sehat', color: '#10b981', icon: '●' };
+    if (pct < 15) return { label: 'Stabil', color: '#f59e0b', icon: '●' };
+    return { label: 'Perlu Perhatian', color: '#ef4444', icon: '●' };
   };
 
-  const getTrendIcon = (score) => {
-    if (score > 70) return <TrendingUp size={14} strokeWidth={2} className="text-success" />;
-    if (score < 30) return <TrendingDown size={14} strokeWidth={2} className="text-danger" />;
-    return <Minus size={14} strokeWidth={2} className="text-muted" />;
+  const health = getHealthLevel();
+
+  const handleExport = (scope) => {
+    const dataToExport = scope === 'filtered' ? filteredResults : results;
+    const csv = generateCSV(dataToExport);
+    downloadCSV(csv, `assessment_export_${new Date().toISOString().split('T')[0]}.csv`);
+    setShowExportDialog(false);
+  };
+
+  const generateCSV = (data) => {
+    const headers = ['Tanggal', 'Waktu', 'Nama Pengguna', 'Email', 'Kategori', 'Skor', 'Status'];
+    const rows = data.map(r => [
+      new Date(r.created_at).toLocaleDateString('id-ID'),
+      new Date(r.created_at).toLocaleTimeString('id-ID'),
+      r.user_name || 'N/A',
+      r.user_email || 'N/A',
+      r.category_label || 'N/A',
+      r.total_score || 0,
+      r.flagged ? 'Flagged' : 'Normal'
+    ]);
+    
+    const csvContent = [
+      headers.map(h => `"${h}"`).join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+    
+    return csvContent;
+  };
+
+  const downloadCSV = (csv, filename) => {
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   if (loading) return (
@@ -92,74 +140,90 @@ function AdminAssessments() {
 
   return (
     <div className="tab-panel admin-assessments">
-      {/* Header Section */}
+      {/* Header */}
       <div className="overview-header">
         <div>
           <h1 className="overview-title">Hasil Assessment</h1>
           <p className="overview-subtitle">Monitoring hasil screening kesehatan mental pengguna</p>
         </div>
         <div className="overview-actions">
-          <button className="btn btn-secondary">
+          <button className="btn btn-secondary" onClick={() => setShowExportDialog(true)}>
             <Download size={16} strokeWidth={2} />
             <span>Export Data</span>
           </button>
         </div>
       </div>
 
-      {/* Stats Overview */}
-      <div className="kpi-grid">
-        <div className="kpi-card">
-          <div className="kpi-header">
-            <div className="kpi-icon" style={{ background: '#3b82f615', color: '#3b82f6' }}>
-              <Activity size={20} strokeWidth={2} />
-            </div>
+      {/* Health Hero */}
+      <div className="health-hero">
+        <div className="health-indicator">
+          <div className="health-dot" style={{ background: health.color }}>
+            <div className="health-pulse" style={{ background: health.color }} />
           </div>
-          <div className="kpi-value">{stats.total.toLocaleString('id-ID')}</div>
-          <div className="kpi-label">Total Assessment</div>
-          <div className="kpi-sub">Seluruh riwayat screening</div>
+          <div className="health-info">
+            <div className="health-label">Status Platform</div>
+            <div className="health-status" style={{ color: health.color }}>{health.label}</div>
+          </div>
         </div>
-
-        <div className="kpi-card">
-          <div className="kpi-header">
-            <div className="kpi-icon" style={{ background: '#10b98115', color: '#10b981' }}>
-              <User size={20} strokeWidth={2} />
-            </div>
+        <div className="health-metrics">
+          <div className="health-metric">
+            <span className="metric-value">{((stats.total - stats.flagged) / Math.max(stats.total, 1) * 100).toFixed(0)}%</span>
+            <span className="metric-label">Normal</span>
           </div>
-          <div className="kpi-value">{stats.avgScore}</div>
-          <div className="kpi-label">Skor Rata-Rata</div>
-          <div className="kpi-sub">Dari semua hasil</div>
-        </div>
-
-        <div className="kpi-card">
-          <div className="kpi-header">
-            <div className="kpi-icon" style={{ background: '#f59e0b15', color: '#f59e0b' }}>
-              <AlertCircle size={20} strokeWidth={2} />
-            </div>
+          <div className="health-metric">
+            <span className="metric-value">{stats.flagged}</span>
+            <span className="metric-label">Flagged</span>
           </div>
-          <div className="kpi-value">{stats.flagged}</div>
-          <div className="kpi-label">Flagged Results</div>
-          <div className="kpi-sub">Perlu perhatian khusus</div>
-        </div>
-
-        <div className="kpi-card">
-          <div className="kpi-header">
-            <div className="kpi-icon" style={{ background: '#8b5cf615', color: '#8b5cf6' }}>
-              <Calendar size={20} strokeWidth={2} />
-            </div>
-          </div>
-          <div className="kpi-value">{categories.length}</div>
-          <div className="kpi-label">Kategori Berbeda</div>
-          <div className="kpi-sub">Jenis hasil assessment</div>
         </div>
       </div>
 
-      {/* Filter & Search Card */}
+      {/* Stats */}
+      <div className="assessment-stats">
+        <div className="stat-card">
+          <div className="stat-card-icon" style={{ background: '#3b82f615', color: '#3b82f6' }}>
+            <Activity size={18} strokeWidth={2} />
+          </div>
+          <div className="stat-card-content">
+            <div className="stat-card-value">{stats.total}</div>
+            <div className="stat-card-label">Total Assessment</div>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-card-icon" style={{ background: '#10b98115', color: '#10b981' }}>
+            <User size={18} strokeWidth={2} />
+          </div>
+          <div className="stat-card-content">
+            <div className="stat-card-value">{stats.avgScore}</div>
+            <div className="stat-card-label">Rata-Rata Skor</div>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-card-icon" style={{ background: '#f59e0b15', color: '#f59e0b' }}>
+            <AlertCircle size={18} strokeWidth={2} />
+          </div>
+          <div className="stat-card-content">
+            <div className="stat-card-value">{stats.flagged}</div>
+            <div className="stat-card-label">Flagged Results</div>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-card-icon" style={{ background: '#8b5cf615', color: '#8b5cf6' }}>
+            <Calendar size={18} strokeWidth={2} />
+          </div>
+          <div className="stat-card-content">
+            <div className="stat-card-value">{categories.length}</div>
+            <div className="stat-card-label">Kategori</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters */}
       <div className="card filter-card">
         <div className="search-box">
           <Search size={18} strokeWidth={2} className="search-icon" />
           <input
             type="text"
-            placeholder="Cari nama pengguna, email, atau kategori..."
+            placeholder="Cari nama, email, atau kategori..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="search-input"
@@ -171,282 +235,125 @@ function AdminAssessments() {
           )}
         </div>
 
-        <div className="filter-row">
-          <div className="filter-group">
-            <Filter size={14} strokeWidth={2} className="filter-icon" />
-            <span className="filter-label">Filter:</span>
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="filter-select"
-            >
-              <option value="all">Semua Kategori</option>
-              {categories.map(cat => (
-                <option key={cat} value={cat}>{cat}</option>
+        <div className="filter-chips">
+          {selectedCategory !== 'all' && (
+            <div className="filter-chip">
+              <span>{selectedCategory}</span>
+              <button onClick={() => setSelectedCategory('all')}><X size={14} /></button>
+            </div>
+          )}
+          {dateFilter !== 'all' && (
+            <div className="filter-chip">
+              <span>{dateFilter === 'week' ? '7 Hari Terakhir' : '30 Hari Terakhir'}</span>
+              <button onClick={() => setDateFilter('all')}><X size={14} /></button>
+            </div>
+          )}
+          <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="filter-select">
+            <option value="all">Semua Kategori</option>
+            {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+          </select>
+          <select value={dateFilter} onChange={(e) => setDateFilter(e.target.value)} className="filter-select">
+            <option value="all">Semua Waktu</option>
+            <option value="week">7 Hari Terakhir</option>
+            <option value="month">30 Hari Terakhir</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Flagged Results */}
+      {flaggedResults.length > 0 && (
+        <div className="results-section">
+          <div className="section-header">
+            <h3 className="section-title">Hasil Flagged ({flaggedResults.length})</h3>
+            <span className="section-badge" style={{ background: '#ef444415', color: '#ef4444' }}>Perlu Perhatian</span>
+          </div>
+          <div className="results-grid">
+            {flaggedResults.map((result) => (
+              <AssessmentCard
+                key={result.id}
+                result={result}
+                isExpanded={expandedId === result.id}
+                onToggle={() => setExpandedId(expandedId === result.id ? null : result.id)}
+                getCategoryColor={getCategoryColor}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Normal Results */}
+      {normalResults.length > 0 && (
+        <div className="results-section">
+          <div className="section-header">
+            <h3 className="section-title">Hasil Normal ({normalResults.length})</h3>
+          </div>
+          <div className="results-grid">
+            {normalResults.slice(
+              (currentPage - 1) * resultsPerPage,
+              currentPage * resultsPerPage
+            ).map((result) => (
+              <AssessmentCard
+                key={result.id}
+                result={result}
+                isExpanded={expandedId === result.id}
+                onToggle={() => setExpandedId(expandedId === result.id ? null : result.id)}
+                getCategoryColor={getCategoryColor}
+              />
+            ))}
+          </div>
+          {Math.ceil(normalResults.length / resultsPerPage) > 1 && (
+            <div className="pagination">
+              {Array.from({ length: Math.ceil(normalResults.length / resultsPerPage) }).map((_, i) => (
+                <button
+                  key={i + 1}
+                  className={`pagination-btn ${currentPage === i + 1 ? 'active' : ''}`}
+                  onClick={() => setCurrentPage(i + 1)}
+                >
+                  {i + 1}
+                </button>
               ))}
-            </select>
-          </div>
-
-          <div className="filter-group">
-            <Calendar size={14} strokeWidth={2} className="filter-icon" />
-            <span className="filter-label">Rentang:</span>
-            <select
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              className="filter-select"
-            >
-              <option value="all">Semua Waktu</option>
-              <option value="week">7 Hari Terakhir</option>
-              <option value="month">30 Hari Terakhir</option>
-            </select>
-          </div>
+            </div>
+          )}
         </div>
-      </div>
+      )}
 
-      {/* Results Table Card */}
-      <div className="card">
-        <div className="table-header-row">
-          <h3 className="chart-title">
-            Hasil Screening ({filteredResults.length})
-            {filteredResults.length !== results.length && (
-              <span className="text-muted" style={{ fontSize: '13px', marginLeft: '8px' }}>
-                (Difilter)
-              </span>
-            )}
-          </h3>
-          <div className="text-sm text-muted">
-            Menampilkan {Math.min(filteredResults.length, 50)} dari {filteredResults.length} hasil
-          </div>
+      {filteredResults.length === 0 && (
+        <div className="empty-state">
+          <Activity size={48} strokeWidth={1.5} />
+          <p>Tidak ada hasil yang ditemukan.</p>
         </div>
+      )}
 
-        {filteredResults.length === 0 ? (
-          <div className="empty-state">
-            <Activity size={48} strokeWidth={1.5} />
-            <p>Tidak ada hasil screening yang ditemukan.</p>
-            {(searchQuery || selectedCategory !== 'all' || dateFilter !== 'all') && (
-              <button 
-                className="btn btn-sm btn-secondary" 
-                onClick={() => { 
-                  setSearchQuery(''); 
-                  setSelectedCategory('all');
-                  setDateFilter('all');
-                }}
-              >
-                Reset Semua Filter
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className="table-responsive">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th style={{ width: '140px' }}>Tanggal</th>
-                  <th style={{ width: '30%' }}>Pengguna</th>
-                  <th>Kategori</th>
-                  <th>Skor</th>
-                  <th style={{ textAlign: 'center' }}>Status</th>
-                  <th style={{ textAlign: 'center' }}>Detail</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredResults.slice(0, 50).map((result, idx) => {
-                  const categoryColor = getCategoryColor(result.category_label);
-                  const isFlagged = result.flagged;
-                  
-                  return (
-                    <tr key={idx}>
-                      <td>
-                        <div className="font-mono text-sm">
-                          {new Date(result.created_at).toLocaleDateString('id-ID', {
-                            day: '2-digit',
-                            month: 'short'
-                          })}
-                        </div>
-                        <div className="font-mono text-xs text-muted">
-                          {new Date(result.created_at).toLocaleTimeString('id-ID', {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </div>
-                      </td>
-                      <td>
-                        <div className="article-title-cell">
-                          <span className="font-weight-600 text-ink">{result.user_name || 'N/A'}</span>
-                          <span className="article-excerpt-preview">
-                            {result.user_email || 'Email tidak tersedia'}
-                          </span>
-                        </div>
-                      </td>
-                      <td>
-                        <span 
-                          className="badge" 
-                          style={{ 
-                            background: `${categoryColor}15`, 
-                            color: categoryColor,
-                            border: `1px solid ${categoryColor}30`
-                          }}
-                        >
-                          {result.category_label}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono font-weight-600 text-ink">{result.total_score}</span>
-                          {getTrendIcon(result.total_score)}
-                        </div>
-                      </td>
-                      <td style={{ textAlign: 'center' }}>
-                        {isFlagged ? (
-                          <span className="badge" style={{ background: '#ef444415', color: '#ef4444', border: '1px solid #ef444430' }}>
-                            Flagged
-                          </span>
-                        ) : (
-                          <span className="badge" style={{ background: '#10b98115', color: '#10b981', border: '1px solid #10b98130' }}>
-                            Normal
-                          </span>
-                        )}
-                      </td>
-                      <td style={{ textAlign: 'center' }}>
-                        <button 
-                          className="btn-icon"
-                          onClick={() => setViewingDetail(result)}
-                          title="Lihat detail"
-                        >
-                          <Info size={16} strokeWidth={2} />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {/* Detail Modal */}
-      {viewingDetail && (
-        <div className="modal-backdrop" onClick={() => setViewingDetail(null)}>
-          <div className="modal-card card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '520px' }}>
+      {/* Export Dialog */}
+      {showExportDialog && (
+        <div className="modal-backdrop" onClick={() => setShowExportDialog(false)}>
+          <div className="modal-card card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
             <div className="modal-header">
-              <div>
-                <h3>Detail Hasil Assessment</h3>
-                <p className="text-sm text-muted" style={{ marginTop: '4px' }}>
-                  ID: {viewingDetail.id}
-                </p>
-              </div>
-              <button className="btn-icon" onClick={() => setViewingDetail(null)}>
+              <h3>Ekspor Data Assessment</h3>
+              <button className="btn-icon" onClick={() => setShowExportDialog(false)}>
                 <X size={20} />
               </button>
             </div>
-
-            <div className="form-group" style={{ gap: '12px' }}>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-semibold uppercase text-muted">Nama Pengguna</label>
-                  <div className="font-weight-600 text-ink" style={{ marginTop: '4px' }}>
-                    {viewingDetail.user_name || 'Tidak diketahui'}
-                  </div>
-                </div>
-                <div>
-                  <label className="text-xs font-semibold uppercase text-muted">Email</label>
-                  <div className="text-ink" style={{ marginTop: '4px', fontSize: '14px' }}>
-                    {viewingDetail.user_email || 'Tidak tersedia'}
-                  </div>
-                </div>
+            <div className="modal-content" style={{ padding: '20px 0' }}>
+              <p style={{ marginBottom: '20px', color: 'var(--on-surface-variant)' }}>
+                Pilih data yang ingin dieksport:
+              </p>
+              <div className="modal-footer" style={{ flexDirection: 'column', gap: '12px', borderTop: 'none', paddingTop: 0, marginTop: 0 }}>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => handleExport('filtered')}
+                  style={{ width: '100%' }}
+                >
+                  Ekspor Data Terpilter ({filteredResults.length})
+                </button>
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => handleExport('all')}
+                  style={{ width: '100%' }}
+                >
+                  Ekspor Semua Data ({stats.total})
+                </button>
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-semibold uppercase text-muted">Tanggal Screening</label>
-                  <div className="font-mono text-sm" style={{ marginTop: '4px' }}>
-                    {new Date(viewingDetail.created_at).toLocaleDateString('id-ID', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </div>
-                </div>
-                <div>
-                  <label className="text-xs font-semibold uppercase text-muted">Total Skor</label>
-                  <div className="font-mono font-weight-600 text-ink text-lg" style={{ marginTop: '4px' }}>
-                    {viewingDetail.total_score}
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold uppercase text-muted">Kategori Hasil</label>
-                <div style={{ marginTop: '8px' }}>
-                  <span 
-                    className="badge" 
-                    style={{ 
-                      background: `${getCategoryColor(viewingDetail.category_label)}15`, 
-                      color: getCategoryColor(viewingDetail.category_label),
-                      border: `1px solid ${getCategoryColor(viewingDetail.category_label)}30`,
-                      fontSize: '13px',
-                      padding: '8px 12px'
-                    }}
-                  >
-                    {viewingDetail.category_label}
-                  </span>
-                  {viewingDetail.flagged && (
-                    <span 
-                      className="badge" 
-                      style={{ 
-                        marginLeft: '8px',
-                        background: '#ef444415', 
-                        color: '#ef4444',
-                        border: '1px solid #ef444430'
-                      }}
-                    >
-                      Flagged
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {viewingDetail.assessment_title && (
-                <div>
-                  <label className="text-xs font-semibold uppercase text-muted">Jenis Assessment</label>
-                  <div className="text-ink" style={{ marginTop: '4px', fontSize: '14px' }}>
-                    {viewingDetail.assessment_title}
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <label className="text-xs font-semibold uppercase text-muted">Catatan Admin</label>
-                <textarea
-                  placeholder="Tambahkan catatan atau tindak lanjut untuk hasil ini..."
-                  rows={4}
-                  style={{ 
-                    width: '100%', 
-                    marginTop: '4px',
-                    padding: '10px 12px',
-                    border: '1px solid var(--outline-variant)',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    fontFamily: 'inherit'
-                  }}
-                />
-              </div>
-            </div>
-
-            <div className="modal-footer">
-              <button 
-                className="btn btn-ghost" 
-                onClick={() => setViewingDetail(null)}
-              >
-                Tutup
-              </button>
-              <button className="btn btn-primary">
-                Simpan Catatan
-              </button>
             </div>
           </div>
         </div>
@@ -455,19 +362,64 @@ function AdminAssessments() {
   );
 }
 
-// Helper CSS classes
-const styles = `
-.flex { display: flex; }
-.items-center { align-items: center; }
-.gap-2 { gap: 8px; }
-.gap-4 { gap: 16px; }
-.grid { display: grid; }
-.grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
-.text-lg { font-size: 18px; }
-.text-sm { font-size: 12px; }
-.text-xs { font-size: 11px; }
-.text-success { color: #10b981; }
-.text-danger { color: #ef4444; }
-`;
+function AssessmentCard({ result, isExpanded, onToggle, getCategoryColor }) {
+  const categoryColor = getCategoryColor(result.category_label);
+  
+  return (
+    <div className="assessment-card" onClick={onToggle}>
+      <div className="card-header">
+        <div className="card-header-left">
+          <div className="card-category-badge" style={{ background: `${categoryColor}15`, color: categoryColor }}>
+            {result.category_label}
+          </div>
+          <div className="card-user-info">
+            <div className="card-user-name">{result.user_name || 'N/A'}</div>
+            <div className="card-user-email">{result.user_email || 'N/A'}</div>
+          </div>
+        </div>
+        <div className="card-score-display">
+          <div className="card-score-value">{result.total_score}</div>
+          {result.flagged && (
+            <div className="card-flagged-badge">
+              <AlertCircle size={14} strokeWidth={2} />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {isExpanded && (
+        <div className="card-detail">
+          <div className="detail-row">
+            <span className="detail-label">Tanggal:</span>
+            <span className="detail-value">
+              {new Date(result.created_at).toLocaleDateString('id-ID', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </span>
+          </div>
+          <div className="detail-row">
+            <span className="detail-label">Waktu:</span>
+            <span className="detail-value">
+              {new Date(result.created_at).toLocaleTimeString('id-ID')}
+            </span>
+          </div>
+          <div className="detail-row">
+            <span className="detail-label">Status:</span>
+            <span className="detail-value" style={{ color: result.flagged ? '#ef4444' : '#10b981' }}>
+              {result.flagged ? 'Flagged' : 'Normal'}
+            </span>
+          </div>
+        </div>
+      )}
+
+      <div className="card-toggle">
+        {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+      </div>
+    </div>
+  );
+}
 
 export default AdminAssessments;
