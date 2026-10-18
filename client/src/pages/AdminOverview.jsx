@@ -207,7 +207,10 @@ function AdminOverview() {
   const userTrendPct = prevWeekUsers > 0 ? ((lastWeekUsers - prevWeekUsers) / prevWeekUsers) * 100 : 0;
 
   const retentionRate = pct(stats.activeUsers, stats.users);
-  const habitRate = pct(stats.completedHabits, stats.habits);
+  // Tingkat pencatatan = centang 7 hari terakhir / (jumlah habit x 7).
+  // Dulu: total seluruh centang / jumlah habit, selalu menjadi 100% ("9 dari 7").
+  const habitLogs7d = stats.habitLogs7d ?? 0;
+  const habitRate = pct(habitLogs7d, (stats.habits || 0) * 7);
   const assessmentPerUser = safeDiv(stats.assessments, stats.users);
   const articlePerUser = safeDiv(stats.articles, stats.users);
   const engagementScore = assessmentPerUser * 100;
@@ -226,14 +229,14 @@ function AdminOverview() {
     { title: 'Pengguna Baru', value: lastWeekUsers, hint: '7 hari terakhir', icon: Users, color: '#3b82f6', trend: true },
     { title: 'Total Assessment', value: stats.assessments, hint: `${assessmentPerUser.toFixed(1)} per pengguna`, icon: ClipboardCheck, color: '#f59e0b' },
     { title: 'Artikel Edukasi', value: stats.articles, hint: 'Artikel tersedia', icon: FileText, color: '#10b981', link: true },
-    { title: 'Habit Selesai', value: stats.completedHabits, hint: `Dari ${stats.habits} habit`, icon: Target, color: '#8b5cf6', progress: habitRate }
+    { title: 'Habit Tercatat', value: habitLogs7d, hint: `7 hari terakhir, dari ${stats.habits} habit`, icon: Target, color: '#8b5cf6', progress: habitRate }
   ];
 
   const strip = [
     { label: 'Retensi aktif', value: `${retentionRate.toFixed(1)}%`, icon: Users, color: '#3b82f6' },
     { label: 'Artikel per user', value: articlePerUser.toFixed(1), icon: FileText, color: '#10b981' },
     { label: 'Assessment per user', value: assessmentPerUser.toFixed(1), icon: ClipboardCheck, color: '#f59e0b' },
-    { label: 'Habit completion', value: `${habitRate.toFixed(1)}%`, icon: Target, color: '#8b5cf6' }
+    { label: 'Pencatatan habit (7 hari)', value: `${habitRate.toFixed(1)}%`, icon: Target, color: '#8b5cf6' }
   ];
 
   return (
@@ -291,7 +294,7 @@ function AdminOverview() {
             <h3 className="ov-card-title">Pertumbuhan Pengguna</h3>
             <span className="ov-card-sub">{lastWeekUsers} pendaftar baru minggu ini</span>
           </div>
-          <GrowthChart data={userTrend} />
+          <GrowthChart data={userTrend.slice(0, 7)} />
         </div>
 
         <div className="ov-card">

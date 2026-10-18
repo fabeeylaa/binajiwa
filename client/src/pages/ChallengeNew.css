@@ -169,3 +169,32 @@
     align-items: flex-start;
   }
 }
+/* Indikator progres & status challenge */
+.chx-top { flex-wrap: wrap; }
+.chx-status {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.chx-status.is-done { background: #dcfce7; color: #15803d; }
+.chx-status.is-failed { background: #fee2e2; color: #b91c1c; }
+.chx-status.is-active { background: #e0efff; color: #1d5fb0; }
+
+.chx-prog { margin-top: 2px; }
+.chx-prog-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--on-surface-variant);
+  margin-bottom: 6px;
+}
+.chx-prog-head strong { color: var(--ink-900); }
+.chx-bar.is-done span { background: linear-gradient(90deg, #22c55e, #15803d); }
+
+.chx-checked { border-color: var(--primary); color: var(--primary); }
+.chx-pill-failed { background: #fee2e2; color: #b91c1c; }

@@ -4,7 +4,7 @@ function Features() {
   const features = [
     {
       title: "Screening Sederhana",
-      desc: "8 pertanyaan singkat tentang tidur, stres, dan energi. Hasilnya berupa rekomendasi umum, bukan diagnosis.",
+      desc: "Pertanyaan singkat tentang tidur, stres, dan energi. Hasilnya berupa rekomendasi umum, bukan diagnosis.",
     },
     {
       title: "Edukasi Kesehatan",

@@ -1,29 +1,34 @@
-export function calculateStreak(logDates) {
+// Hitung streak dari kumpulan tanggal (string 'YYYY-MM-DD' atau Date).
+// Semua perhitungan memakai string tanggal + aritmetika UTC murni, jadi hasilnya
+// tidak bergantung zona waktu server. (Versi lama memakai setHours() lokal lalu
+// toISOString() UTC, sehingga di WIB "hari ini" terbaca sebagai kemarin dan
+// streak ikut salah.)
+const pad = (n) => String(n).padStart(2, "0");
+
+const toDateStr = (d) => {
+  if (typeof d === "string") return d.slice(0, 10);
+  // Date dari driver pg (kalau parser DATE tidak dipasang): pakai komponen lokal.
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+};
+
+const shiftDay = (dateStr, delta) => {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d + delta));
+  return `${dt.getUTCFullYear()}-${pad(dt.getUTCMonth() + 1)}-${pad(dt.getUTCDate())}`;
+};
+
+export function calculateStreak(logDates, todayStr = toDateStr(new Date())) {
   if (!logDates || logDates.length === 0) return 0;
 
-  const dates = logDates
-    .map((d) => new Date(d).toISOString().split("T")[0])
-    .sort()
-    .reverse();
+  // buang null/undefined (mis. ARRAY_AGG dari LEFT JOIN tanpa data berisi [null])
+  const days = new Set(logDates.filter(Boolean).map(toDateStr));
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  let cursor = new Date(today);
-
-  if (dates[0] !== cursor.toISOString().split("T")[0]) {
-    cursor.setDate(cursor.getDate() - 1);
-  }
-
+  // Streak tetap hidup kalau hari ini belum dicatat tapi kemarin sudah.
+  let cursor = days.has(todayStr) ? todayStr : shiftDay(todayStr, -1);
   let streak = 0;
-  for (const dateStr of dates) {
-    const cursorStr = cursor.toISOString().split("T")[0];
-    if (dateStr === cursorStr) {
-      streak++;
-      cursor.setDate(cursor.getDate() - 1);
-    } else if (dateStr < cursorStr) {
-      break;
-    }
+  while (days.has(cursor)) {
+    streak++;
+    cursor = shiftDay(cursor, -1);
   }
-
   return streak;
 }

@@ -251,3 +251,70 @@
     animation: none;
   }
 }
+/* Pencarian beranda: dropdown hasil */
+.new-dashboard .dash-search { position: relative; }
+.dash-search-clear {
+  border: none;
+  background: none;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--on-surface-variant);
+  cursor: pointer;
+  padding: 0 2px;
+}
+.dash-search-pop {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  background: var(--surface);
+  border: 1px solid var(--outline-variant);
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  padding: 6px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+.dash-search-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: none;
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--on-surface);
+}
+.dash-search-item.active,
+.dash-search-item:hover { background: var(--surface-container-low); }
+.dash-search-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dash-search-tag {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--surface-container);
+  color: var(--forest);
+}
+.dash-search-tag.habit { background: #fff1e0; color: #b45309; }
+.dash-search-empty {
+  padding: 14px 12px;
+  font-size: 13px;
+  color: var(--on-surface-variant);
+}
+
+.dash-search-tag.page { background: #e0efff; color: #1d5fb0; }
+.dash-search-tag.screening,
+.dash-search-tag.history { background: #ede9ff; color: #5b45c4; }

@@ -76,7 +76,8 @@ export const createArticle = async (req, res) => {
     });
   }
 
-  const slug = slugify(title);
+  // judul yang isinya hanya simbol menghasilkan slug kosong -> beri cadangan
+  const slug = slugify(title) || `artikel-${Date.now()}`;
 
   try {
     const result = await pool.query(
@@ -96,9 +97,16 @@ export const createArticle = async (req, res) => {
 };
 
 export const updateArticle = async (req, res) => {
-  const { id } = req.params;
+  const articleId = parseInt(req.params.id, 10);
   const { title, content, excerpt, cover_image } = req.body;
   const category = normalizeCategory(req.body.category);
+
+  if (!Number.isInteger(articleId)) {
+    return res.status(400).json({ message: 'ID artikel tidak valid' });
+  }
+  if (!title || !String(title).trim() || !content || !String(content).trim()) {
+    return res.status(400).json({ message: 'Title dan content wajib diisi' });
+  }
 
   if (!ALLOWED_CATEGORIES.includes(category)) {
     return res.status(400).json({
@@ -111,7 +119,7 @@ export const updateArticle = async (req, res) => {
       `UPDATE articles
        SET title = $1, content = $2, category = $3, excerpt = $4, cover_image = $5, updated_at = CURRENT_TIMESTAMP
        WHERE id = $6 RETURNING *`,
-      [title, content, category, excerpt || null, cover_image || null, id]
+      [title, content, category, excerpt || null, cover_image || null, articleId]
     );
 
     if (result.rows.length === 0) {

@@ -100,11 +100,60 @@ export const getAssessmentDetail = async (req, res) => {
 // POST /assessments/:id/submit — kirim jawaban, dapat skor + rekomendasi artikel
 // body: { answers: [{ question_id, option_id }, ...] }
 export const submitAssessment = async (req, res) => {
-  const { id } = req.params;
-  const { answers } = req.body;
+  const assessmentId = parseInt(req.params.id, 10);
+  const { answers } = req.body ?? {};
 
+  if (!Number.isInteger(assessmentId)) {
+    return res.status(400).json({ message: "ID assessment tidak valid" });
+  }
   if (!Array.isArray(answers) || answers.length === 0) {
     return res.status(400).json({ message: "Jawaban tidak boleh kosong" });
+  }
+  const optionIds = answers.map((a) => Number(a?.option_id));
+  if (optionIds.some((n) => !Number.isInteger(n))) {
+    return res.status(400).json({ message: "Format jawaban tidak valid" });
+  }
+
+  // Validasi di server (jangan percaya client): semua pertanyaan milik assessment
+  // ini harus terjawab tepat satu kali, dan tiap opsi harus milik pertanyaan itu.
+  let optionMap;
+  try {
+    const questions = await pool.query(
+      "SELECT id FROM assessment_questions WHERE assessment_id = $1",
+      [assessmentId],
+    );
+    if (questions.rows.length === 0) {
+      return res.status(404).json({ message: "Assessment tidak ditemukan" });
+    }
+
+    const optionsResult = await pool.query(
+      `SELECT o.id AS option_id, o.score_value, o.question_id, q.is_sensitive, q.assessment_id
+       FROM assessment_options o
+       JOIN assessment_questions q ON q.id = o.question_id
+       WHERE o.id = ANY($1::int[])`,
+      [optionIds],
+    );
+    optionMap = new Map(optionsResult.rows.map((r) => [r.option_id, r]));
+
+    const answered = new Set();
+    for (const optionId of optionIds) {
+      const opt = optionMap.get(optionId);
+      if (!opt || opt.assessment_id !== assessmentId) {
+        return res.status(400).json({ message: `Opsi jawaban tidak valid: ${optionId}` });
+      }
+      if (answered.has(opt.question_id)) {
+        return res.status(400).json({ message: "Satu pertanyaan hanya boleh dijawab satu kali" });
+      }
+      answered.add(opt.question_id);
+    }
+    if (answered.size !== questions.rows.length) {
+      return res.status(400).json({
+        message: `Semua pertanyaan wajib dijawab (${answered.size}/${questions.rows.length})`,
+      });
+    }
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Terjadi kesalahan server" });
   }
 
   const client = await pool.connect();
@@ -112,26 +161,10 @@ export const submitAssessment = async (req, res) => {
   try {
     await client.query("BEGIN");
 
-    // ambil skor & flag sensitif tiap jawaban dari DB (jangan percaya skor dari client)
-    const optionIds = answers.map((a) => a.option_id);
-    const optionsResult = await client.query(
-      `SELECT o.id AS option_id, o.score_value, o.question_id, q.is_sensitive
-       FROM assessment_options o
-       JOIN assessment_questions q ON q.id = o.question_id
-       WHERE o.id = ANY($1::int[])`,
-      [optionIds],
-    );
-
-    const optionMap = new Map(optionsResult.rows.map((r) => [r.option_id, r]));
-
     let totalScore = 0;
     let flagged = false;
-    for (const ans of answers) {
-      const opt = optionMap.get(ans.option_id);
-      if (!opt) {
-        await client.query("ROLLBACK");
-        return res.status(400).json({ message: `Opsi jawaban tidak valid: ${ans.option_id}` });
-      }
+    for (const optionId of optionIds) {
+      const opt = optionMap.get(optionId);
       totalScore += opt.score_value;
       if (opt.is_sensitive && opt.score_value > 0) flagged = true;
     }
@@ -140,7 +173,7 @@ export const submitAssessment = async (req, res) => {
     const rangeResult = await client.query(
       `SELECT category_label, result_message FROM assessment_score_ranges
        WHERE assessment_id = $1 AND $2 BETWEEN min_score AND max_score`,
-      [id, totalScore],
+      [assessmentId, totalScore],
     );
     const category = rangeResult.rows[0] || { category_label: "Tidak diketahui", result_message: null };
 
@@ -148,21 +181,21 @@ export const submitAssessment = async (req, res) => {
     const resultInsert = await client.query(
       `INSERT INTO assessment_results (user_id, assessment_id, total_score, category_label, result_message, flagged)
        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [req.user.id, id, totalScore, category.category_label, category.result_message, flagged],
+      [req.user.id, assessmentId, totalScore, category.category_label, category.result_message, flagged],
     );
     const resultId = resultInsert.rows[0].id;
 
-    // simpan jawaban detail
-    for (const ans of answers) {
+    // simpan jawaban detail (question_id diambil dari DB, bukan dari client)
+    for (const optionId of optionIds) {
       await client.query(
         `INSERT INTO assessment_answers (result_id, question_id, option_id) VALUES ($1, $2, $3)`,
-        [resultId, ans.question_id, ans.option_id],
+        [resultId, optionMap.get(optionId).question_id, optionId],
       );
     }
 
     await client.query("COMMIT");
 
-    const assessmentInfo = await pool.query("SELECT code FROM assessments WHERE id = $1", [id]);
+    const assessmentInfo = await pool.query("SELECT code FROM assessments WHERE id = $1", [assessmentId]);
     const assessmentCode = assessmentInfo.rows[0]?.code;
 
     // rekomendasi artikel sesuai kategori hasil

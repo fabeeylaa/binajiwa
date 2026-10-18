@@ -166,3 +166,25 @@
     display: none;
   }
 }
+/* Persetujuan penggunaan data di form daftar */
+.auth-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 2px 0 6px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--on-surface-variant);
+  cursor: pointer;
+}
+.auth-consent input {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  margin-top: 3px;
+  accent-color: var(--primary);
+}
+.auth-form .btn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

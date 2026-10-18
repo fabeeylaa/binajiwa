@@ -15,6 +15,7 @@ function AuthPage() {
     password: ''
   });
   const [error, setError] = useState('');
+  const [consent, setConsent] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -31,7 +32,7 @@ function AuthPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify(formData)
+        body: JSON.stringify(isLogin ? formData : { ...formData, consent })
       });
       const data = await res.json();
       
@@ -44,6 +45,7 @@ function AuthPage() {
           }
         } else {
           setIsLogin(true);
+          setConsent(false);
           setError('Registrasi berhasil, silakan login');
         }
       } else {
@@ -151,7 +153,28 @@ function AuthPage() {
             />
           </div>
 
-          <button type="submit" className="btn btn-primary btn-full">
+          {!isLogin && (
+            <label className="auth-consent">
+              <input
+                type="checkbox"
+                checked={consent}
+                onChange={(e) => setConsent(e.target.checked)}
+              />
+              <span>
+                Saya memahami bahwa hasil screening di SehatJiwa bersifat indikatif dan
+                bukan diagnosis. Saya menyetujui data saya (profil, catatan habit, dan
+                hasil screening) disimpan dan diolah untuk fitur aplikasi ini. Nama,
+                username, dan streak saya dapat dilihat pengguna lain di leaderboard
+                dan fitur teman. Admin hanya melihat data yang disamarkan.
+              </span>
+            </label>
+          )}
+
+          <button
+            type="submit"
+            className="btn btn-primary btn-full"
+            disabled={!isLogin && !consent}
+          >
             {isLogin ? 'Masuk' : 'Daftar Sekarang'}
           </button>
         </form>

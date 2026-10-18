@@ -4,11 +4,42 @@ import pool from "../config/db.js";
 import fs from "fs/promises";
 import path from "path";
 
-export const register = async (req, res) => {
-  const { name, email, password, username } = req.body;
+// Cookie hanya dikirim lewat HTTPS saat NODE_ENV=production (di lokal tetap HTTP).
+// Opsi yang sama dipakai saat set & hapus cookie supaya logout benar-benar menghapusnya.
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax',
+};
 
+export const register = async (req, res) => {
+  const { password, consent } = req.body ?? {};
+  const name = String(req.body?.name ?? '').trim();
+  const email = String(req.body?.email ?? '').trim();
+  const username = String(req.body?.username ?? '').trim();
+
+  if (!name) {
+    return res.status(400).json({ message: 'Nama wajib diisi' });
+  }
   if (!username) {
     return res.status(400).json({ message: 'Username wajib diisi' });
+  }
+  if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
+    return res.status(400).json({
+      message: 'Username harus 3-20 karakter (huruf, angka, underscore)',
+    });
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ message: 'Format email tidak valid' });
+  }
+  if (typeof password !== 'string' || password.length < 8) {
+    return res.status(400).json({ message: 'Password minimal 8 karakter' });
+  }
+  // Persetujuan dicek di server (bukan hanya di checkbox), waktunya disimpan.
+  if (consent !== true) {
+    return res.status(400).json({
+      message: 'Kamu harus menyetujui ketentuan penggunaan data untuk mendaftar',
+    });
   }
 
   try {
@@ -23,12 +54,19 @@ export const register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = await pool.query(
-      'INSERT INTO users (name, email, username, password) VALUES ($1, $2, $3, $4) RETURNING id, name, email, username, role',
+      'INSERT INTO users (name, email, username, password, consent_at) VALUES ($1, $2, $3, $4, NOW()) RETURNING id, name, email, username, role',
       [name, email, username, hashedPassword]
     );
 
     res.status(201).json({ message: 'Registrasi berhasil', user: newUser.rows[0] });
   } catch (err) {
+    if (err.code === '42703') {
+      // kolom consent_at belum ada -> migrasi 016 belum dijalankan
+      console.error('Jalankan migrasi 016_add_consent_to_users.sql dulu.', err.message);
+      return res.status(500).json({
+        message: 'Database belum diperbarui. Jalankan migrasi 016_add_consent_to_users.sql.',
+      });
+    }
     console.error(err);
     res.status(500).json({ message: 'Terjadi kesalahan server' });
   }
@@ -59,8 +97,7 @@ export const login = async (req, res) => {
     );
 
     res.cookie("token", token, {
-      httpOnly: true,
-      secure: false, // nanti diganti true kalau udah production (HTTPS)
+      ...cookieOptions,
       maxAge: 24 * 60 * 60 * 1000, // 1 hari
     });
 
@@ -100,7 +137,7 @@ export const getMe = async (req, res) => {
 };
 
 export const logout = (req, res) => {
-  res.clearCookie('token');
+  res.clearCookie('token', cookieOptions);
   res.status(200).json({ message: 'Logout berhasil' });
 };
 

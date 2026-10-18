@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import './UserHomeNew.css';
 import './UserHomePolish.css';
 import { useNavigate, Link } from 'react-router-dom';
@@ -84,6 +84,18 @@ const getArticleColor = (category) => {
   return 'art-primary';
 };
 
+// Halaman yang bisa dicari dari kolom search beranda
+const SEARCH_PAGES = [
+  { title: 'Screening', keywords: ['screening', 'tes', 'kuesioner', 'assessment'], to: '/dashboard/screening' },
+  { title: 'Riwayat Screening', keywords: ['riwayat', 'history', 'hasil'], to: '/dashboard/screening' },
+  { title: 'Habit Tracker', keywords: ['habit', 'tracker', 'kebiasaan', 'aktivitas'], to: '/dashboard/habits' },
+  { title: 'Edukasi', keywords: ['edukasi', 'artikel', 'bacaan'], to: '/dashboard/articles' },
+  { title: 'Sosial', keywords: ['sosial', 'teman', 'friend'], to: '/dashboard/social' },
+  { title: 'Leaderboard', keywords: ['leaderboard', 'peringkat', 'ranking'], to: '/dashboard/social' },
+  { title: 'Challenge', keywords: ['challenge', 'tantangan'], to: '/dashboard/social' },
+  { title: 'Profil', keywords: ['profil', 'akun', 'avatar'], to: '/dashboard/profile' },
+];
+
 function UserHome({ user }) {
   const navigate = useNavigate();
   const [summary, setSummary] = useState(null);
@@ -91,6 +103,125 @@ function UserHome({ user }) {
   const [loading, setLoading] = useState(true);
   const [togglingId, setTogglingId] = useState(null);
   const abortRef = useRef(null);
+
+  // ----- Pencarian beranda (aktivitas + artikel) -----
+  const [query, setQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [activeIdx, setActiveIdx] = useState(-1);
+  const [searchData, setSearchData] = useState({
+    habits: [], articles: [], assessments: [], history: [], loaded: false,
+  });
+  const searchRef = useRef(null);
+
+  // Data pencarian diambil sekali saat input pertama kali difokuskan.
+  const loadSearchData = useCallback(async () => {
+    if (searchData.loaded) return;
+    // allSettled: kalau satu endpoint gagal, sisanya tetap bisa dicari
+    const get = (url) =>
+      fetch(url, { credentials: 'include' }).then(r => (r.ok ? r.json() : {}));
+    const [h, a, as, hist] = await Promise.allSettled([
+      get('/api/habits'),
+      get('/api/articles?page=1&limit=50'),
+      get('/api/assessments'),
+      get('/api/assessments/history'),
+    ]);
+    const val = (r) => (r.status === 'fulfilled' ? r.value : {});
+    setSearchData({
+      habits: val(h).habits || [],
+      articles: val(a).items || [],
+      assessments: val(as).assessments || [],
+      history: val(hist).history || [],
+      loaded: true,
+    });
+  }, [searchData.loaded]);
+
+  const searchResults = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return [];
+
+    const pages = SEARCH_PAGES
+      .filter(p =>
+        p.title.toLowerCase().includes(q) ||
+        (q.length >= 3 && p.keywords.some(k => k.startsWith(q)))
+      )
+      .map(p => ({ type: 'page', key: `p-${p.title}`, title: p.title, sub: 'Halaman', to: p.to }));
+
+    const habitWords = ['habit', 'aktivitas', 'kebiasaan', 'tracker'];
+    const isHabitWord = q.length >= 3 && habitWords.some(w => w.startsWith(q));
+    const habits = searchData.habits
+      .filter(h =>
+        isHabitWord ||
+        h.title.toLowerCase().includes(q) ||
+        (h.description || '').toLowerCase().includes(q)
+      )
+      .slice(0, isHabitWord ? 6 : 4)
+      .map(h => ({ type: 'habit', key: `h-${h.id}`, title: h.title, sub: 'Aktivitas', to: '/dashboard/habits' }));
+
+    const tests = searchData.assessments
+      .filter(a =>
+        a.title.toLowerCase().includes(q) ||
+        (a.code || '').toLowerCase().includes(q) ||
+        (a.description || '').toLowerCase().includes(q)
+      )
+      .slice(0, 3)
+      .map(a => ({ type: 'screening', key: `s-${a.id}`, title: a.title, sub: 'Screening', to: '/dashboard/screening' }));
+
+    const history = searchData.history
+      .filter(r =>
+        r.assessment_title.toLowerCase().includes(q) ||
+        (r.category_label || '').toLowerCase().includes(q)
+      )
+      .slice(0, 3)
+      .map(r => ({
+        type: 'history',
+        key: `r-${r.id}`,
+        title: `${r.assessment_title} · ${r.category_label}`,
+        sub: new Date(r.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
+        to: '/dashboard/screening',
+      }));
+
+    const articles = searchData.articles
+      .filter(a => a.title.toLowerCase().includes(q) || (a.excerpt || '').toLowerCase().includes(q))
+      .slice(0, 5)
+      .map(a => ({ type: 'article', key: `a-${a.id}`, title: a.title, sub: categoryLabel(a.category), to: `/dashboard/articles/${a.slug}` }));
+
+    return [...pages, ...habits, ...tests, ...history, ...articles];
+  }, [query, searchData]);
+
+  const goToResult = (item) => {
+    setSearchOpen(false);
+    setQuery('');
+    navigate(item.to);
+  };
+
+  const submitSearch = (e) => {
+    e.preventDefault();
+    const q = query.trim();
+    if (!q) return;
+    if (activeIdx >= 0 && searchResults[activeIdx]) return goToResult(searchResults[activeIdx]);
+    setSearchOpen(false);
+    navigate(`/dashboard/articles?q=${encodeURIComponent(q)}`);
+  };
+
+  const onSearchKeyDown = (e) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActiveIdx(i => Math.min(i + 1, searchResults.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActiveIdx(i => Math.max(i - 1, -1));
+    } else if (e.key === 'Escape') {
+      setSearchOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    const onDocClick = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) setSearchOpen(false);
+    };
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, []);
 
   const fetchSummary = useCallback(async () => {
     abortRef.current?.abort();
@@ -288,10 +419,50 @@ function UserHome({ user }) {
       <div className="dash-greeting">
         <h1 className="dash-greeting-title">{greeting}, {firstName}</h1>
       </div>
-      <div className="dash-search">
+      <form className="dash-search" ref={searchRef} onSubmit={submitSearch} role="search">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-        <input type="text" placeholder="Cari aktivitas atau artikel..." aria-label="Cari aktivitas atau artikel" />
-      </div>
+        <input
+          type="text"
+          placeholder="Cari aktivitas atau artikel..."
+          aria-label="Cari aktivitas atau artikel"
+          value={query}
+          autoComplete="off"
+          onFocus={() => { loadSearchData(); setSearchOpen(true); }}
+          onChange={(e) => { setQuery(e.target.value); setActiveIdx(-1); setSearchOpen(true); }}
+          onKeyDown={onSearchKeyDown}
+        />
+        {query && (
+          <button type="button" className="dash-search-clear" aria-label="Bersihkan pencarian" onClick={() => { setQuery(''); setActiveIdx(-1); }}>
+            &times;
+          </button>
+        )}
+        {searchOpen && query.trim() && (
+          <div className="dash-search-pop" role="listbox">
+            {!searchData.loaded ? (
+              <div className="dash-search-empty">Memuat...</div>
+            ) : searchResults.length === 0 ? (
+              <div className="dash-search-empty">
+                Tidak ada hasil untuk &ldquo;{query.trim()}&rdquo;
+              </div>
+            ) : (
+              searchResults.map((r, i) => (
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={i === activeIdx}
+                  key={r.key}
+                  className={`dash-search-item ${i === activeIdx ? 'active' : ''}`}
+                  onMouseEnter={() => setActiveIdx(i)}
+                  onClick={() => goToResult(r)}
+                >
+                  <span className="dash-search-title">{r.title}</span>
+                  <span className={`dash-search-tag ${r.type}`}>{r.sub}</span>
+                </button>
+              ))
+            )}
+          </div>
+        )}
+      </form>
 
       <div className="dash-grid">
         <div className="dash-main">

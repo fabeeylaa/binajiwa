@@ -5,7 +5,7 @@ import './ChallengeNew.css';
 import './FriendsNew.css';
 import './LeaderboardNew.css';
 import './UserSocialPolish.css';
-import { Flame, Check, CalendarDays, Users, Plus, X, Clock, Trophy, Brain, Moon, Apple, Dumbbell, Bell, UserPlus, Send } from 'lucide-react';
+import { Flame, Check, CalendarDays, Users, Plus, X, Clock, Trophy, Brain, Moon, Apple, Dumbbell, Bell, UserPlus, Send, CircleCheck, CircleX } from 'lucide-react';
 
 function Leaderboard() {
   const [scope, setScope] = useState('global'); // 'global' | 'friends'
@@ -428,6 +428,7 @@ function Challenges() {
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [filter, setFilter] = useState('all');
+  const [busyId, setBusyId] = useState(null);
   const [form, setForm] = useState({
     title: '',
     habit_type: 'mental health',
@@ -504,11 +505,34 @@ function Challenges() {
     }
   };
 
+  // Check-in hari ini / batalkan. Respons server berisi challenge terbaru
+  // (progres + status), jadi cukup ganti item-nya di state.
+  const toggleCheckin = async (c) => {
+    setBusyId(c.id);
+    setError('');
+    setInfo('');
+    try {
+      const res = await fetch(`/api/social/challenges/${c.id}/checkin`, {
+        method: c.checked_today ? 'DELETE' : 'POST',
+        credentials: 'include',
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Gagal menyimpan check-in');
+      setItems((prev) => prev.map((x) => (x.id === data.id ? data : x)));
+      if (data.is_completed) setInfo(`Selamat! Kamu menyelesaikan challenge "${data.title}".`);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   const canSubmit =
     form.title.trim() && parseInt(form.duration_days, 10) > 0 && !saving;
 
   const shown = items.filter((c) => {
     if (filter === 'joined') return c.is_joined;
+    if (filter === 'done') return c.my_status === 'completed';
     if (filter === 'open') return !c.is_joined;
     return true;
   });
@@ -516,6 +540,7 @@ function Challenges() {
   const FILTERS = [
     { id: 'all', label: 'Semua' },
     { id: 'joined', label: 'Diikuti' },
+    { id: 'done', label: 'Selesai' },
     { id: 'open', label: 'Tersedia' },
   ];
 
@@ -574,10 +599,11 @@ function Challenges() {
           };
           const full =
             c.max_participants && c.participant_count >= c.max_participants;
-          const end = c.end_date ? new Date(c.end_date) : null;
-          const daysLeft = end
-            ? Math.max(0, Math.ceil((end.getTime() - Date.now()) / 86400000))
-            : null;
+          // days_left dihitung server (deadline per peserta kalau sudah ikut,
+          // batas pendaftaran kalau belum), jadi tidak bergantung jam browser.
+          const daysLeft = c.days_left === null || c.days_left === undefined
+            ? null
+            : Math.max(0, c.days_left);
           const timePct =
             daysLeft !== null && c.duration_days
               ? Math.min(
@@ -596,6 +622,19 @@ function Challenges() {
                   <Icon size={20} />
                 </span>
                 <span className={`chx-cat tone-${cat.tone}`}>{cat.label}</span>
+                {c.my_status === 'completed' && (
+                  <span className="chx-status is-done">
+                    <CircleCheck size={14} /> Selesai
+                  </span>
+                )}
+                {c.my_status === 'failed' && (
+                  <span className="chx-status is-failed">
+                    <CircleX size={14} /> Tidak selesai
+                  </span>
+                )}
+                {c.my_status === 'in_progress' && (
+                  <span className="chx-status is-active">Sedang berjalan</span>
+                )}
               </div>
 
               <div className="chx-title">{c.title}</div>
@@ -615,25 +654,74 @@ function Challenges() {
                 </span>
               </div>
 
-              {timePct !== null && (
+              {c.is_joined && (
+                <div className="chx-prog">
+                  <div className="chx-prog-head">
+                    <span>Progres kamu</span>
+                    <strong>
+                      {c.my_checkins}/{c.duration_days} hari
+                    </strong>
+                  </div>
+                  <div className={`chx-bar ${c.my_status === 'completed' ? 'is-done' : ''}`}>
+                    <span
+                      style={{
+                        width: `${Math.round((c.my_checkins / c.duration_days) * 100)}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {timePct !== null && c.my_status !== 'completed' && (
                 <div className="chx-time">
                   <div className="chx-bar">
                     <span style={{ width: `${timePct}%` }} />
                   </div>
                   <div className="chx-time-text">
                     <Clock size={13} />
-                    {daysLeft === 0
-                      ? 'Berakhir hari ini'
-                      : `Berakhir dalam ${daysLeft} hari`}
+                    {c.is_ended
+                      ? c.is_joined
+                        ? 'Batas waktumu sudah lewat'
+                        : 'Pendaftaran sudah ditutup'
+                      : c.is_joined
+                        ? daysLeft === 0
+                          ? 'Batas selesai: hari ini'
+                          : `Batas selesai: ${daysLeft} hari lagi`
+                        : daysLeft === 0
+                          ? 'Pendaftaran ditutup hari ini'
+                          : `Pendaftaran ditutup ${daysLeft} hari lagi`}
                   </div>
                 </div>
               )}
 
               <div className="chx-action">
                 {c.is_joined ? (
-                  <span className="soc-pill soc-pill-done">
-                    <Check size={15} /> Sudah ikut
-                  </span>
+                  c.my_status === 'completed' ? (
+                    <span className="soc-pill soc-pill-done">
+                      <Trophy size={15} /> Challenge selesai
+                    </span>
+                  ) : c.is_ended ? (
+                    <span className="soc-pill chx-pill-failed">Waktu habis</span>
+                  ) : (
+                    <button
+                      type="button"
+                      className={`btn btn-sm ${c.checked_today ? 'btn-ghost chx-checked' : 'btn-primary'}`}
+                      disabled={busyId === c.id}
+                      onClick={() => toggleCheckin(c)}
+                      title={c.checked_today ? 'Klik untuk membatalkan check-in hari ini' : undefined}
+                    >
+                      <Check size={15} />{' '}
+                      {busyId === c.id
+                        ? '...'
+                        : c.checked_today
+                          ? 'Sudah check-in hari ini'
+                          : 'Check-in hari ini'}
+                    </button>
+                  )
+                ) : c.is_ended ? (
+                  <button type="button" className="btn btn-ghost btn-sm" disabled>
+                    Berakhir
+                  </button>
                 ) : full ? (
                   <button type="button" className="btn btn-ghost btn-sm" disabled>
                     Penuh

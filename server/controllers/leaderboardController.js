@@ -23,7 +23,7 @@ export const getLeaderboard = async (req, res) => {
     }
 
     const usersResult = await pool.query(
-      `SELECT u.id, u.name, u.username, u.avatar_url FROM users u ${userFilter}`,
+      `SELECT u.id, u.name, u.username, u.avatar_url FROM users u ${userFilter} ORDER BY u.id`,
       params,
     );
 

@@ -6,12 +6,19 @@ import {
 } from 'lucide-react';
 import '../pages/Dashboard.css';
 
+// Kategori hasil yang dianggap perlu tindak lanjut walau tidak ada item risiko
+// yang dijawab (mis. Student Wellness tidak punya item risiko sama sekali, jadi
+// "Disarankan konsultasi" tidak akan pernah berstatus flagged).
+const HIGH_SEVERITY = new Set(['Berat', 'Sedang-berat', 'Disarankan konsultasi']);
+const needsAttention = (r) => Boolean(r.flagged) || HIGH_SEVERITY.has(r.category_label);
+
 function AdminAssessments() {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [dateFilter, setDateFilter] = useState('all');
+  const [selectedAssessment, setSelectedAssessment] = useState('all');
   const [expandedId, setExpandedId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [showExportDialog, setShowExportDialog] = useState(false);
@@ -34,10 +41,12 @@ function AdminAssessments() {
   };
 
   const categories = [...new Set(results.map(r => r.category_label))];
+  const assessmentTitles = [...new Set(results.map(r => r.assessment_title).filter(Boolean))];
   
   const stats = {
     total: results.length,
     flagged: results.filter(r => r.flagged).length,
+    attention: results.filter(needsAttention).length,
     byCategory: categories.reduce((acc, cat) => {
       acc[cat] = results.filter(r => r.category_label === cat).length;
       return acc;
@@ -47,21 +56,32 @@ function AdminAssessments() {
 
   const getCategoryColor = (category) => {
     const colorMap = {
+      // hijau: kondisi baik
+      'Baik': '#10b981',
+      'Minimal': '#10b981',
       'Ringan': '#10b981',
+      'Normal': '#10b981',
+      // kuning/oranye: perlu dipantau
+      'Perlu perhatian': '#f59e0b',
       'Sedang': '#f59e0b',
+      'Waspada': '#f59e0b',
+      'Sedang-berat': '#f97316',
+      // merah: tindak lanjut
       'Berat': '#ef4444',
-      'Normal': '#3b82f6',
-      'Wasapada': '#f59e0b',
+      'Disarankan konsultasi': '#ef4444',
       'Darurat': '#ef4444',
     };
     return colorMap[category] || '#6b7280';
   };
 
   const filteredResults = results.filter(result => {
-    const matchesSearch = result.user_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchesSearch = result.user_ref?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         result.assessment_title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         result.user_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          result.user_email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          result.category_label?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || result.category_label === selectedCategory;
+    const matchesAssessment = selectedAssessment === 'all' || result.assessment_title === selectedAssessment;
     
     const resultDate = new Date(result.created_at);
     const now = new Date();
@@ -72,14 +92,14 @@ function AdminAssessments() {
     if (dateFilter === 'week') matchesDate = resultDate >= oneWeekAgo;
     if (dateFilter === 'month') matchesDate = resultDate >= oneMonthAgo;
     
-    return matchesSearch && matchesCategory && matchesDate;
+    return matchesSearch && matchesCategory && matchesAssessment && matchesDate;
   });
 
-  const flaggedResults = filteredResults.filter(r => r.flagged);
-  const normalResults = filteredResults.filter(r => !r.flagged);
+  const flaggedResults = filteredResults.filter(needsAttention);
+  const normalResults = filteredResults.filter(r => !needsAttention(r));
 
   const healthStatus = stats.total > 0 
-    ? ((stats.flagged / stats.total) * 100).toFixed(1) 
+    ? ((stats.attention / stats.total) * 100).toFixed(1) 
     : 0;
   
   const getHealthLevel = () => {
@@ -99,20 +119,23 @@ function AdminAssessments() {
   };
 
   const generateCSV = (data) => {
-    const headers = ['Tanggal', 'Waktu', 'Nama Pengguna', 'Email', 'Kategori', 'Skor', 'Status'];
+    const headers = ['Tanggal', 'Waktu', 'Kode Pengguna', 'Nama Pengguna', 'Email', 'Screening', 'Kategori', 'Skor', 'Skor Maks', 'Status'];
     const rows = data.map(r => [
       new Date(r.created_at).toLocaleDateString('id-ID'),
       new Date(r.created_at).toLocaleTimeString('id-ID'),
+      r.user_ref || 'N/A',
       r.user_name || 'N/A',
       r.user_email || 'N/A',
+      r.assessment_title || 'N/A',
       r.category_label || 'N/A',
       r.total_score || 0,
-      r.flagged ? 'Flagged' : 'Normal'
+      r.max_score ?? '',
+      r.flagged ? 'Flagged' : HIGH_SEVERITY.has(r.category_label) ? 'Kategori tinggi' : 'Normal'
     ]);
     
     const csvContent = [
       headers.map(h => `"${h}"`).join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
     ].join('\n');
     
     return csvContent;
@@ -167,12 +190,12 @@ function AdminAssessments() {
         </div>
         <div className="health-metrics">
           <div className="health-metric">
-            <span className="metric-value">{((stats.total - stats.flagged) / Math.max(stats.total, 1) * 100).toFixed(0)}%</span>
-            <span className="metric-label">Normal</span>
+            <span className="metric-value">{((stats.total - stats.attention) / Math.max(stats.total, 1) * 100).toFixed(0)}%</span>
+            <span className="metric-label">Aman</span>
           </div>
           <div className="health-metric">
-            <span className="metric-value">{stats.flagged}</span>
-            <span className="metric-label">Flagged</span>
+            <span className="metric-value">{stats.attention}</span>
+            <span className="metric-label">Perlu perhatian</span>
           </div>
         </div>
       </div>
@@ -202,8 +225,8 @@ function AdminAssessments() {
             <AlertCircle size={18} strokeWidth={2} />
           </div>
           <div className="stat-card-content">
-            <div className="stat-card-value">{stats.flagged}</div>
-            <div className="stat-card-label">Flagged Results</div>
+            <div className="stat-card-value">{stats.attention}</div>
+            <div className="stat-card-label">Perlu Perhatian</div>
           </div>
         </div>
         <div className="stat-card">
@@ -223,7 +246,7 @@ function AdminAssessments() {
           <Search size={18} strokeWidth={2} className="search-icon" />
           <input
             type="text"
-            placeholder="Cari nama, email, atau kategori..."
+            placeholder="Cari kode pengguna (mis. U-0034), screening, atau kategori..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="search-input"
@@ -242,12 +265,22 @@ function AdminAssessments() {
               <button onClick={() => setSelectedCategory('all')}><X size={14} /></button>
             </div>
           )}
+          {selectedAssessment !== 'all' && (
+            <div className="filter-chip">
+              <span>{selectedAssessment}</span>
+              <button onClick={() => setSelectedAssessment('all')}><X size={14} /></button>
+            </div>
+          )}
           {dateFilter !== 'all' && (
             <div className="filter-chip">
               <span>{dateFilter === 'week' ? '7 Hari Terakhir' : '30 Hari Terakhir'}</span>
               <button onClick={() => setDateFilter('all')}><X size={14} /></button>
             </div>
           )}
+          <select value={selectedAssessment} onChange={(e) => setSelectedAssessment(e.target.value)} className="filter-select">
+            <option value="all">Semua Screening</option>
+            {assessmentTitles.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
           <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)} className="filter-select">
             <option value="all">Semua Kategori</option>
             {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
@@ -264,8 +297,8 @@ function AdminAssessments() {
       {flaggedResults.length > 0 && (
         <div className="results-section">
           <div className="section-header">
-            <h3 className="section-title">Hasil Flagged ({flaggedResults.length})</h3>
-            <span className="section-badge" style={{ background: '#ef444415', color: '#ef4444' }}>Perlu Perhatian</span>
+            <h3 className="section-title">Perlu Perhatian ({flaggedResults.length})</h3>
+            <span className="section-badge" style={{ background: '#ef444415', color: '#ef4444' }}>Prioritas tindak lanjut</span>
           </div>
           <div className="results-grid" style={{ alignItems: 'start' }}>
             {flaggedResults.map((result) => (
@@ -285,7 +318,7 @@ function AdminAssessments() {
       {normalResults.length > 0 && (
         <div className="results-section">
           <div className="section-header">
-            <h3 className="section-title">Hasil Normal ({normalResults.length})</h3>
+            <h3 className="section-title">Hasil Lainnya ({normalResults.length})</h3>
           </div>
           <div className="results-grid" style={{ alignItems: 'start' }}>
             {normalResults.slice(
@@ -374,13 +407,23 @@ function AssessmentCard({ result, isExpanded, onToggle, getCategoryColor }) {
           </div>
           <div className="card-user-info">
             <div className="card-user-name">{result.user_name || 'N/A'}</div>
-            <div className="card-user-email">{result.user_email || 'N/A'}</div>
+            <div className="card-user-email">{result.user_ref ? `${result.user_ref} · ` : ''}{result.user_email || 'N/A'}</div>
+            {result.assessment_title && (
+              <div className="card-user-email" style={{ fontWeight: 600, color: 'var(--ink-900, #14332a)' }}>
+                {result.assessment_title}
+              </div>
+            )}
           </div>
         </div>
         <div className="card-score-display">
-          <div className="card-score-value">{result.total_score}</div>
-          {result.flagged && (
-            <div className="card-flagged-badge">
+          <div className="card-score-value" style={{ color: categoryColor }}>
+            {result.total_score}
+            {result.max_score != null && (
+              <span style={{ fontSize: 13, fontWeight: 500, color: '#7a9186' }}> / {result.max_score}</span>
+            )}
+          </div>
+          {needsAttention(result) && (
+            <div className="card-flagged-badge" title={result.flagged ? 'Menjawab item risiko' : 'Kategori hasil tinggi'}>
               <AlertCircle size={14} strokeWidth={2} />
             </div>
           )}
@@ -389,6 +432,10 @@ function AssessmentCard({ result, isExpanded, onToggle, getCategoryColor }) {
 
       {isExpanded && (
         <div className="card-detail">
+          <div className="detail-row">
+            <span className="detail-label">Screening:</span>
+            <span className="detail-value">{result.assessment_title || '-'}</span>
+          </div>
           <div className="detail-row">
             <span className="detail-label">Tanggal:</span>
             <span className="detail-value">
@@ -408,10 +455,20 @@ function AssessmentCard({ result, isExpanded, onToggle, getCategoryColor }) {
           </div>
           <div className="detail-row">
             <span className="detail-label">Status:</span>
-            <span className="detail-value" style={{ color: result.flagged ? '#ef4444' : '#10b981' }}>
-              {result.flagged ? 'Flagged' : 'Normal'}
+            <span className="detail-value" style={{ color: needsAttention(result) ? '#ef4444' : '#10b981' }}>
+              {needsAttention(result) ? 'Perlu perhatian' : 'Normal'}
             </span>
           </div>
+          {needsAttention(result) && (
+            <div className="detail-row">
+              <span className="detail-label">Alasan:</span>
+              <span className="detail-value">
+                {[result.flagged && 'Menjawab item risiko', HIGH_SEVERITY.has(result.category_label) && 'Kategori hasil tinggi']
+                  .filter(Boolean)
+                  .join(' dan ')}
+              </span>
+            </div>
+          )}
         </div>
       )}
 

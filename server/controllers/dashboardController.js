@@ -62,8 +62,8 @@ export const getDashboardSummary = async (req, res) => {
       // Leaderboard rank for user (friends + global)
       pool.query(
         `SELECT u.id, u.name, u.username, u.avatar_url,
-                COUNT(DISTINCT hl.habit_id)::int AS total_completed,
-                ARRAY_AGG(DISTINCT hl.log_date) AS log_dates
+                COUNT(hl.id)::int AS total_completed,
+                ARRAY_AGG(DISTINCT hl.log_date) FILTER (WHERE hl.log_date IS NOT NULL) AS log_dates
          FROM users u
          LEFT JOIN habit_logs hl ON hl.user_id = u.id
          GROUP BY u.id

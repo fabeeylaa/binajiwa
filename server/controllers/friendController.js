@@ -5,10 +5,14 @@ export const addFriend = async (req, res) => {
   const { identifier } = req.body; // bisa email atau username
   const requesterId = req.user.id;
 
+  if (!identifier || !String(identifier).trim()) {
+    return res.status(400).json({ message: "Username atau email wajib diisi" });
+  }
+
   try {
     const targetUser = await pool.query(
       "SELECT id FROM users WHERE email = $1 OR username = $1",
-      [identifier],
+      [String(identifier).trim()],
     );
 
     if (targetUser.rows.length === 0) {
@@ -21,6 +25,32 @@ export const addFriend = async (req, res) => {
       return res
         .status(400)
         .json({ message: "Tidak bisa menambahkan diri sendiri" });
+    }
+
+    // UNIQUE(requester_id, addressee_id) hanya menangkap arah yang sama. Cek dua arah
+    // supaya A->B lalu B->A tidak membuat dua baris pertemanan.
+    const existing = await pool.query(
+      `SELECT * FROM friendships
+       WHERE (requester_id = $1 AND addressee_id = $2)
+          OR (requester_id = $2 AND addressee_id = $1)`,
+      [requesterId, addresseeId],
+    );
+
+    if (existing.rows.length > 0) {
+      const f = existing.rows[0];
+      if (f.status === "accepted") {
+        return res.status(400).json({ message: "Kalian sudah berteman" });
+      }
+      if (f.status === "pending") {
+        return res.status(400).json({
+          message:
+            f.requester_id === requesterId
+              ? "Request pertemanan sudah pernah dikirim"
+              : "User ini sudah mengirim request ke kamu, cek Permintaan Masuk",
+        });
+      }
+      // status 'rejected': hapus baris lama supaya request baru bisa dikirim ulang
+      await pool.query("DELETE FROM friendships WHERE id = $1", [f.id]);
     }
 
     const result = await pool.query(

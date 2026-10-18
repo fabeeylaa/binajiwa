@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Search, X, AlertCircle, Apple, Brain, Activity, Moon, Bookmark } from 'lucide-react';
 import { ARTICLE_CATEGORIES, categoryLabel } from '../utils/articleCategories';
 import '../pages/Dashboard.css';
@@ -10,7 +10,13 @@ function UserArticles() {
   const [savedArticles, setSavedArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchParams] = useSearchParams();
+  // ?q= datang dari kolom pencarian di beranda. Nilai ketikan disimpan bersama
+  // q asalnya, jadi kalau URL berganti (cari lagi dari beranda) otomatis ikut q baru.
+  const urlQuery = searchParams.get('q') || '';
+  const [typed, setTyped] = useState({ base: urlQuery, value: urlQuery });
+  const searchQuery = typed.base === urlQuery ? typed.value : urlQuery;
+  const setSearchQuery = (value) => setTyped({ base: urlQuery, value });
 
   const categories = [{ value: 'all', label: 'Semua' }, ...ARTICLE_CATEGORIES, { value: 'saved', label: 'Tersimpan' }];
 
