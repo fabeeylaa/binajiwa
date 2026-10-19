@@ -8,6 +8,7 @@ import logoSehatJiwa from '../assets/Logoosehatjiwa.jpeg';
 
 function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
+  const [showTerms, setShowTerms] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     username: '',
@@ -26,7 +27,7 @@ function AuthPage() {
     e.preventDefault();
     setError('');
     const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
-    
+
     try {
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -35,7 +36,7 @@ function AuthPage() {
         body: JSON.stringify(isLogin ? formData : { ...formData, consent })
       });
       const data = await res.json();
-      
+
       if (res.ok) {
         if (isLogin) {
           if (data.user.role === 'admin') {
@@ -77,110 +78,134 @@ function AuthPage() {
           </div>
           <div className="authx-quote">Satu langkah kecil setiap hari tetap berarti untuk kesehatan jiwamu.</div>
         </div>
+
         <div className="authx-main">
-      <div className="auth-card authx-card">
-        <div className="auth-header">
-          <div className="navbar-logo" onClick={() => navigate('/')} style={{cursor: 'pointer', marginBottom: '1.5rem'}}>
-            <img src={logoSehatJiwa} alt="Logo SehatJiwa" style={{ height: '44px', width: '44px', objectFit: 'contain' }} />
-            SehatJiwa
-          </div>
-          <h1>{isLogin ? 'Selamat Datang' : 'Mulai Perjalanan Anda'}</h1>
-          <p>{isLogin ? 'Masuk untuk memantau kesehatan jiwa Anda' : 'Buat akun untuk fitur lengkap'}</p>
-        </div>
+          <div className="auth-card authx-card">
+            <div className="auth-header">
+              <div className="navbar-logo" onClick={() => navigate('/')} style={{ cursor: 'pointer', marginBottom: '1.5rem' }}>
+                <img src={logoSehatJiwa} alt="Logo SehatJiwa" style={{ height: '44px', width: '44px', objectFit: 'contain' }} />
+                SehatJiwa
+              </div>
+              <h1>{isLogin ? 'Selamat Datang' : 'Mulai Perjalanan Anda'}</h1>
+              <p>{isLogin ? 'Masuk untuk memantau kesehatan jiwa Anda' : 'Buat akun untuk fitur lengkap'}</p>
+            </div>
 
-        <div className="auth-tabs">
-          <button 
-            className={`auth-tab ${isLogin ? 'active' : ''}`} 
-            onClick={() => setIsLogin(true)}
-          >
-            Login
-          </button>
-          <button 
-            className={`auth-tab ${!isLogin ? 'active' : ''}`} 
-            onClick={() => setIsLogin(false)}
-          >
-            Daftar
-          </button>
-        </div>
+            <div className="auth-tabs">
+              <button
+                type="button"
+                className={`auth-tab ${isLogin ? 'active' : ''}`}
+                onClick={() => setIsLogin(true)}
+              >
+                Login
+              </button>
+              <button
+                type="button"
+                className={`auth-tab ${!isLogin ? 'active' : ''}`}
+                onClick={() => setIsLogin(false)}
+              >
+                Daftar
+              </button>
+            </div>
 
-        <form onSubmit={handleSubmit} className="auth-form">
-          {error && <div className={`auth-error ${error.includes('berhasil') ? 'success' : ''}`}>{error}</div>}
-          
-          {!isLogin && (
-            <>
+            <form onSubmit={handleSubmit} className="auth-form">
+              {error && <div className={`auth-error ${error.includes('berhasil') ? 'success' : ''}`}>{error}</div>}
+
+              {!isLogin && (
+                <>
+                  <div className="form-group">
+                    <label>Nama Lengkap</label>
+                    <input
+                      type="text"
+                      name="name"
+                      placeholder="Masukan nama lengkap"
+                      required
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Username</label>
+                    <input
+                      type="text"
+                      name="username"
+                      placeholder="Masukan username"
+                      required
+                      onChange={handleChange}
+                    />
+                  </div>
+                </>
+              )}
+
               <div className="form-group">
-                <label>Nama Lengkap</label>
-                <input 
-                  type="text" 
-                  name="name" 
-                  placeholder="Masukan nama lengkap" 
-                  required 
-                  onChange={handleChange} 
+                <label>Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="name@example.com"
+                  required
+                  onChange={handleChange}
                 />
               </div>
+
               <div className="form-group">
-                <label>Username</label>
-                <input 
-                  type="text" 
-                  name="username" 
-                  placeholder="Masukan username" 
-                  required 
-                  onChange={handleChange} 
+                <label>Password</label>
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="••••••••"
+                  required
+                  onChange={handleChange}
                 />
               </div>
-            </>
-          )}
 
-          <div className="form-group">
-            <label>Email</label>
-            <input 
-              type="email" 
-              name="email" 
-              placeholder="name@example.com" 
-              required 
-              onChange={handleChange} 
-            />
+              {!isLogin && (
+                <label className="auth-consent">
+                  <input
+                    type="checkbox"
+                    checked={consent}
+                    onChange={(e) => setConsent(e.target.checked)}
+                  />
+                  <span>
+                    Saya telah membaca dan menyetujui{' '}
+                    <button type="button" className="auth-link" onClick={() => setShowTerms(true)}>
+                      Syarat &amp; Ketentuan
+                    </button>{' '}
+                    SehatJiwa.
+                  </span>
+                </label>
+              )}
+
+              <button
+                type="submit"
+                className="btn btn-primary btn-full"
+                disabled={!isLogin && !consent}
+              >
+                {isLogin ? 'Masuk' : 'Daftar Sekarang'}
+              </button>
+            </form>
           </div>
+        </div>
+      </div>
 
-          <div className="form-group">
-            <label>Password</label>
-            <input 
-              type="password" 
-              name="password" 
-              placeholder="••••••••" 
-              required 
-              onChange={handleChange} 
-            />
+      {showTerms && (
+        <div className="terms-overlay" onClick={() => setShowTerms(false)}>
+          <div className="terms-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Syarat &amp; Ketentuan</h3>
+            <ul>
+              <li>Hasil screening di SehatJiwa bersifat indikatif dan bukan diagnosis.</li>
+              <li>Data kamu (profil, catatan habit, dan hasil screening) disimpan dan diolah untuk fitur aplikasi ini.</li>
+              <li>Nama, username, dan streak dapat dilihat pengguna lain di leaderboard dan fitur teman.</li>
+              <li>Admin hanya melihat data yang disamarkan.</li>
+            </ul>
+            <button
+              type="button"
+              className="btn btn-primary btn-full"
+              onClick={() => { setConsent(true); setShowTerms(false); }}
+            >
+              Saya Mengerti &amp; Setuju
+            </button>
           </div>
-
-          {!isLogin && (
-            <label className="auth-consent">
-              <input
-                type="checkbox"
-                checked={consent}
-                onChange={(e) => setConsent(e.target.checked)}
-              />
-              <span>
-                Saya memahami bahwa hasil screening di SehatJiwa bersifat indikatif dan
-                bukan diagnosis. Saya menyetujui data saya (profil, catatan habit, dan
-                hasil screening) disimpan dan diolah untuk fitur aplikasi ini. Nama,
-                username, dan streak saya dapat dilihat pengguna lain di leaderboard
-                dan fitur teman. Admin hanya melihat data yang disamarkan.
-              </span>
-            </label>
-          )}
-
-          <button
-            type="submit"
-            className="btn btn-primary btn-full"
-            disabled={!isLogin && !consent}
-          >
-            {isLogin ? 'Masuk' : 'Daftar Sekarang'}
-          </button>
-        </form>
-      </div>
-      </div>
-      </div>
+        </div>
+      )}
     </div>
   );
 }
