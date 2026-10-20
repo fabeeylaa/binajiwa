@@ -29,6 +29,7 @@
 .hero > * {
   position: relative;
   z-index: 1;
+  min-width: 0; /* supaya kolom grid boleh mengecil */
 }
 
 .hero-text {
@@ -164,7 +165,7 @@
   font-weight: 500;
 }
 
-/* ===== HERO VISUAL — SATU BLOK LENGKAP ===== */
+/* ===== HERO VISUAL ===== */
 .hero-visual {
   position: relative;
   width: 100%;
@@ -264,14 +265,55 @@
   .float-card { animation: none; }
 }
 
-@media (max-width: 768px) {
-  .hero-visual { max-width: 320px; }
+/* ===== TABLET: kurangi jarak ===== */
+@media (max-width: 1024px) {
+  .hero {
+    gap: 2.5rem;
+    padding: 9rem 2rem 5rem;
+  }
+}
 
-  .float-card--top,
+/* ===== HP: jadi satu kolom ===== */
+@media (max-width: 768px) {
+  .hero {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+    padding: 7rem 1.25rem 4rem;
+    min-height: 0;
+  }
+
+  .hero-title {
+    font-size: clamp(2.1rem, 9vw, 2.75rem);
+  }
+
+  .hero-sub {
+    font-size: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .hero-proof {
+    margin-top: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .hero-visual {
+    max-width: 320px;
+  }
+
+  /* Kartu tetap melayang, tapi tidak keluar dari layar */
+  .float-card {
+    padding: 0.75rem 0.9rem;
+    gap: 0.65rem;
+    border-radius: 1.1rem;
+  }
+
+  .float-card--top {
+    right: 0;
+  }
+
   .float-card--bottom {
-    position: static;
-    margin: 0.5rem 0;
-    animation: none;
+    left: 0;
   }
 }
 
