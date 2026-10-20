@@ -28,7 +28,13 @@ if (!process.env.JWT_SECRET) {
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+// Wajib di belakang proxy Render supaya cookie `secure` terkirim
+app.set('trust proxy', 1);
+
+app.use(cors({
+  origin: process.env.CLIENT_URL || true,
+  credentials: true,
+}));
 app.use(express.json());
 app.use(cookieParser());
 
@@ -36,7 +42,7 @@ app.use(cookieParser());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use('/api/auth', authRoutes);
-app.use('/api/habits', habitRoutes);           
+app.use('/api/habits', habitRoutes);
 app.use('/api/assessments', assessmentRoutes);
 app.use('/api/articles', articleRoutes);
 app.use('/api/bookmarks', bookmarkRoutes);
@@ -65,4 +71,3 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
-
