@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { Bookmark, BookmarkCheck, ChevronLeft, BookOpen, Heart, Share2, MessageSquare } from 'lucide-react';
+import { Bookmark, BookmarkCheck, ChevronLeft, BookOpen, Share2, MessageSquare } from 'lucide-react';
 import { categoryLabel } from '../utils/articleCategories';
 import './UserArticleDetail.css';
 import './UserArticleDetailPolish.css';
@@ -9,7 +9,6 @@ function UserArticleDetail() {
   const { slug } = useParams();
   const [article, setArticle] = useState(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
-  const [isLiked, setIsLiked] = useState(false);
   const [loading, setLoading] = useState(true);
   const [allArticles, setAllArticles] = useState([]);
   const navigate = useNavigate();
@@ -136,13 +135,6 @@ function UserArticleDetail() {
 
         <aside className="ad-sidebar">
           <div className="ad-actions-card">
-            <button 
-              className="ad-like-btn" 
-              onClick={() => setIsLiked(!isLiked)}
-              style={{ color: isLiked ? '#e74c3c' : '#444' }}
-            >
-              <Heart size={20} fill={isLiked ? '#e74c3c' : 'none'} />
-            </button>
             <div className="ad-action-group">
               <button 
                 className="ad-action-btn"

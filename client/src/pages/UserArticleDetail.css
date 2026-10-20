@@ -133,7 +133,7 @@
   padding: 1.25rem;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   box-shadow: 0 8px 24px rgba(45, 90, 67, 0.08), 0 2px 8px rgba(0,0,0,0.04);
   border: 1px solid rgba(45, 90, 67, 0.1);
 }
@@ -159,25 +159,6 @@
 }
 
 .ad-action-btn:hover {
-  background: #e9eaec;
-}
-
-.ad-like-btn {
-  background: #f4f5f7;
-  border: none;
-  height: 2.75rem;
-  border-radius: 1.375rem;
-  padding: 0 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  color: #444;
-  font-weight: 600;
-  transition: all 0.2s;
-}
-
-.ad-like-btn:hover {
   background: #e9eaec;
 }
 
