@@ -7,7 +7,7 @@ function Footer() {
       <div className="footer-inner">
         <div className="footer-brand">
           <div className="footer-logo">
-            SehatJiwa
+            BinaJiwa
           </div>
           <p className="footer-desc">
             Pendamping kesehatan mental untuk mahasiswa Indonesia. Mulai langkah kecilmu hari ini.
@@ -38,7 +38,7 @@ function Footer() {
 
       <div className="footer-bottom">
         <div className="footer-disclaimer">
-          SehatJiwa tidak merupakan pengganti konsultasi kesehatan mental atau
+          BinaJiwa tidak merupakan pengganti konsultasi kesehatan mental atau
           bantuan medis profesional. Segala kondisi kesehatan, hubungi
           ahli atau fasilitas kesehatan terdekat.
         </div>

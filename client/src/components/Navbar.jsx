@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import logo from '../assets/Logoosehatjiwa.jpeg';
+import logo from '../assets/Logoobinajiwa.jpeg';
 import './Navbar.css';
 
 const SECTIONS = [
@@ -76,8 +76,8 @@ function Navbar() {
   return (
     <nav className="navbar">
       <a className="navbar-logo" href="#top" onClick={(e) => handleNavClick(e, '#top')}>
-        <img src={logo} alt="Logo SehatJiwa" />
-        SehatJiwa
+        <img src={logo} alt="Logo BinaJiwa" />
+        BinaJiwa
       </a>
 
       <div className={`navbar-menu ${menuOpen ? 'open' : ''}`}>

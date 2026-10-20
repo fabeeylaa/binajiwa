@@ -4,7 +4,7 @@ import './AuthPage.css';
 import './AuthPolish.css';
 import authIllustration from '../assets/auth-illustration.jpg';
 import { Activity, ClipboardCheck } from 'lucide-react';
-import logoSehatJiwa from '../assets/Logoosehatjiwa.jpeg';
+import logoBinaJiwa from '../assets/Logoobinajiwa.jpeg';
 
 function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -83,8 +83,8 @@ function AuthPage() {
           <div className="auth-card authx-card">
             <div className="auth-header">
               <div className="navbar-logo" onClick={() => navigate('/')} style={{ cursor: 'pointer', marginBottom: '1.5rem' }}>
-                <img src={logoSehatJiwa} alt="Logo SehatJiwa" style={{ height: '44px', width: '44px', objectFit: 'contain' }} />
-                SehatJiwa
+                <img src={logoBinaJiwa} alt="Logo BinaJiwa" style={{ height: '44px', width: '44px', objectFit: 'contain' }} />
+                BinaJiwa
               </div>
               <h1>{isLogin ? 'Selamat Datang' : 'Mulai Perjalanan Anda'}</h1>
               <p>{isLogin ? 'Masuk untuk memantau kesehatan jiwa Anda' : 'Buat akun untuk fitur lengkap'}</p>
@@ -169,7 +169,7 @@ function AuthPage() {
                     <button type="button" className="auth-link" onClick={() => setShowTerms(true)}>
                       Syarat &amp; Ketentuan
                     </button>{' '}
-                    SehatJiwa.
+                    BinaJiwa.
                   </span>
                 </label>
               )}
@@ -191,7 +191,7 @@ function AuthPage() {
           <div className="terms-modal" onClick={(e) => e.stopPropagation()}>
             <h3>Syarat &amp; Ketentuan</h3>
             <ul>
-              <li>Hasil screening di SehatJiwa bersifat indikatif dan bukan diagnosis.</li>
+              <li>Hasil screening di BinaJiwa bersifat indikatif dan bukan diagnosis.</li>
               <li>Data kamu (profil, catatan habit, dan hasil screening) disimpan dan diolah untuk fitur aplikasi ini.</li>
               <li>Nama, username, dan streak dapat dilihat pengguna lain di leaderboard dan fitur teman.</li>
               <li>Admin hanya melihat data yang disamarkan.</li>

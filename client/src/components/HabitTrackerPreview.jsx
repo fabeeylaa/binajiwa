@@ -67,7 +67,7 @@ function HabitTrackerPreview() {
             terlihat jelas.
           </h2>
           <p className="habit-desc">
-            Lupakan spreadsheet yang rumit. Cukup centang tiap hari di aplikasi SehatJiwa, dan biarkan kami yang hitung streak dan pencapaian kebiasaan Anda.
+            Lupakan spreadsheet yang rumit. Cukup centang tiap hari di aplikasi BinaJiwa, dan biarkan kami yang hitung streak dan pencapaian kebiasaan Anda.
           </p>
         </div>
       </div>

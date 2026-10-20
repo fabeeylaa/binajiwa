@@ -11,7 +11,7 @@ function PrivacyPage() {
         <p className="privacy-updated">Terakhir diperbarui: 20 Oktober 2026</p>
 
         <p>
-          SehatJiwa adalah pendamping kesehatan mental untuk mahasiswa. Halaman ini
+          BinaJiwa adalah pendamping kesehatan mental untuk mahasiswa. Halaman ini
           menjelaskan data apa yang kami simpan, untuk apa, dan siapa saja yang bisa
           melihatnya.
         </p>

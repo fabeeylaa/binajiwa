@@ -7,8 +7,8 @@ function FAQ() {
 
   const faqs = [
     {
-      q: "Apa itu SehatJiwa?",
-      a: "SehatJiwa adalah platform kesehatan mental yang dirancang khusus untuk mahasiswa, menyediakan alat bantu screening mandiri, pelacak kebiasaan (habit tracker), dan konten edukasi yang relevan."
+      q: "Apa itu BinaJiwa?",
+      a: "BinaJiwa adalah platform kesehatan mental yang dirancang khusus untuk mahasiswa, menyediakan alat bantu screening mandiri, pelacak kebiasaan (habit tracker), dan konten edukasi yang relevan."
     },
     {
       q: "Apakah hasil screening merupakan diagnosis medis?",

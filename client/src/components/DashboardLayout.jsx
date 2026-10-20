@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './DashboardLayout.css';
-import logoSehatJiwa from '../assets/Logoosehatjiwa.jpeg';
+import logoBinaJiwa from '../assets/Logoobinajiwa.jpeg';
 
 function DashboardLayout({ user, children, menuItems }) {
   const navigate = useNavigate();
@@ -39,8 +39,8 @@ function DashboardLayout({ user, children, menuItems }) {
       ></div>
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sb-logo">
-          <img src={logoSehatJiwa} alt="Logo SehatJiwa" style={{ width: '40px', height: '40px', objectFit: 'contain', flexShrink: 0 }} />
-          <span>SehatJiwa</span>
+          <img src={logoBinaJiwa} alt="Logo BinaJiwa" style={{ width: '40px', height: '40px', objectFit: 'contain', flexShrink: 0 }} />
+          <span>BinaJiwa</span>
         </div>
         <nav className="sb-nav" aria-label="Navigasi dashboard">
           {indicator && (

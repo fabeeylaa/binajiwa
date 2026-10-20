@@ -247,7 +247,7 @@ function AdminOverview() {
       <div className="ov-head">
         <div>
           <h1 className="ov-title">Overview</h1>
-          <p className="ov-sub">Ringkasan aktivitas platform SehatJiwa</p>
+          <p className="ov-sub">Ringkasan aktivitas platform BinaJiwa</p>
         </div>
         <div className="ov-head-right">
           <span className="ov-pill" style={{ color: health.color }}>

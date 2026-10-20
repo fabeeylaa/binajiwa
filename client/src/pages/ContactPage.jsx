@@ -4,7 +4,7 @@ import './PrivacyPage.css';
 
 function ContactPage() {
   const email = 'nesyakelaa@gmail.com';
-  const gmailLink = `https://mail.google.com/mail/?view=cm&to=${email}&su=${encodeURIComponent('Pesan untuk SehatJiwa')}`;
+  const gmailLink = `https://mail.google.com/mail/?view=cm&to=${email}&su=${encodeURIComponent('Pesan untuk BinaJiwa')}`;
 
   const [copied, setCopied] = useState(false);
 
@@ -48,7 +48,7 @@ function ContactPage() {
 
         <h2>Butuh bantuan segera?</h2>
         <p>
-          SehatJiwa bukan layanan darurat. Jika kamu merasa kewalahan atau
+          BinaJiwa bukan layanan darurat. Jika kamu merasa kewalahan atau
           dalam kondisi krisis, segera hubungi tenaga profesional, fasilitas
           kesehatan terdekat, atau orang yang kamu percaya.
         </p>

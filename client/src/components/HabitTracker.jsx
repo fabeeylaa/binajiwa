@@ -28,7 +28,7 @@ function HabitTracker() {
             <span className="eyebrow">HABIT TRACKER</span>
             <h2>Progres kecil, terlihat jelas.</h2>
             <p>
-              Nggak perlu spreadsheet ribet. Cukup centang tiap hari, SehatJiwa
+              Nggak perlu spreadsheet ribet. Cukup centang tiap hari, BinaJiwa
               yang hitungin streak dan progresnya.
             </p>
           </div>

@@ -53,7 +53,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 
 app.get('/', (req, res) => {
-  res.send('SehatJiwa API is running');
+  res.send('BinaJiwa API is running');
 });
 
 // Error handler HARUS didaftarkan setelah semua route, kalau tidak error dari
