@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import '../pages/Dashboard.css';
 import './UserSocial.css';
 import './ChallengeNew.css';
@@ -176,6 +176,8 @@ function Friends() {
   const [identifier, setIdentifier] = useState('');
   const [sending, setSending] = useState(false);
   const [adding, setAdding] = useState('');
+  const [notifOpen, setNotifOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   const load = () => {
     Promise.all([
@@ -202,6 +204,16 @@ function Friends() {
 
   useEffect(() => {
     load();
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setNotifOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const addFriend = async (value) => {
@@ -274,9 +286,61 @@ function Friends() {
   return (
     <div className="fr-wrap">
       <div className="fr-topbar">
-        <div className="fr-bell" title="Permintaan masuk">
-          <Bell size={20} />
-          {incoming.length > 0 && <span className="fr-bell-badge">{incoming.length}</span>}
+        <div className="fr-bell-wrap" ref={dropdownRef}>
+          <button
+            className="fr-bell-btn"
+            aria-label="Permintaan masuk"
+            onClick={() => setNotifOpen(o => !o)}
+          >
+            <Bell size={20} />
+            {incoming.length > 0 && <span className="fr-bell-badge">{incoming.length}</span>}
+          </button>
+          {notifOpen && (
+            <div className="fr-notif-dropdown">
+              <div className="fr-notif-header">
+                <h4>Permintaan Masuk</h4>
+                <button className="fr-notif-close" onClick={() => setNotifOpen(false)}>&times;</button>
+              </div>
+              {incoming.length === 0 ? (
+                <p className="fr-empty">Tidak ada permintaan masuk.</p>
+              ) : (
+                incoming.slice(0, 5).map(f => (
+                  <div key={f.id} className="fr-notif-item">
+                    <Avatar seed={f.username} name={f.name} avatar={f.avatar_url} size={44} />
+                    <div className="fr-notif-text">
+                      <div className="fr-notif-name">{f.name}</div>
+                      <div className="fr-sub">@{f.username}</div>
+                    </div>
+                    <div className="soc-btns">
+                      <button
+                        className="btn btn-primary btn-sm"
+                        onClick={() => respond(f.id, 'accept')}
+                      >
+                        Terima
+                      </button>
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        onClick={() => respond(f.id, 'reject')}
+                      >
+                        Tolak
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+              <div className="fr-notif-footer">
+                <button
+                  className="fr-notif-link"
+                  onClick={() => {
+                    setNotifOpen(false);
+                    document.getElementById('incoming-requests')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }}
+                >
+                  Lihat semua
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -337,7 +401,7 @@ function Friends() {
           </div>
 
           {incoming.length > 0 && (
-            <div className="card">
+            <div className="card" id="incoming-requests" style={{ scrollMarginTop: '80px' }}>
               <h3>Permintaan Masuk</h3>
               {incoming.map((f) => (
                 <div className="fr-item" key={f.id}>

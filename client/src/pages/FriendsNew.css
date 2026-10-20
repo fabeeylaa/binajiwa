@@ -7,7 +7,11 @@
   display: flex;
   justify-content: flex-end;
 }
-.fr-bell {
+.fr-bell-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
   position: relative;
   width: 44px;
   height: 44px;
@@ -17,7 +21,106 @@
   background: var(--surface);
   border: 1px solid var(--outline-variant);
   color: var(--ink-900);
+  transition: all 0.2s ease;
 }
+
+.fr-bell-btn:hover {
+  background: var(--surface-container-low);
+  transform: translateY(-2px);
+}
+
+.fr-bell-wrap {
+  position: relative;
+}
+
+.fr-notif-dropdown {
+  position: absolute;
+  top: 55px;
+  right: 0;
+  width: 320px;
+  background: var(--surface);
+  border: 1px solid var(--outline-variant);
+  border-radius: 16px;
+  box-shadow: var(--shadow-float);
+  z-index: 1000;
+  padding: 0;
+  overflow: hidden;
+  animation: fr-notif-rise 0.25s ease-out;
+}
+
+@keyframes fr-notif-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fr-notif-header {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--outline-variant);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.fr-notif-header h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.fr-notif-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: var(--on-surface-variant);
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.fr-notif-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--outline-variant);
+}
+
+.fr-notif-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.fr-notif-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-900);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fr-notif-footer {
+  padding: 10px;
+  text-align: center;
+  background: var(--surface-bright);
+}
+
+.fr-notif-link {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.fr-notif-dropdown .fr-empty {
+  padding: 24px;
+  text-align: center;
+  margin: 0;
+}
+
+
 .fr-bell-badge {
   position: absolute;
   top: -4px;
