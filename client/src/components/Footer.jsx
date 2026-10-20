@@ -1,4 +1,5 @@
 import './Footer.css';
+import { Link } from "react-router-dom";
 
 function Footer() {
   return (
@@ -15,23 +16,23 @@ function Footer() {
 
         <div className="footer-column">
           <h4>Layanan</h4>
-          <a href="#features">Fitur</a>
-          <a href="#screening">Screening</a>
-          <a href="#habit-tracker">Habit Tracker</a>
-          <a href="#education">Edukasi</a>
+          <Link to="/#features">Fitur</Link>
+          <Link to="/#screening">Screening</Link>
+          <Link to="/#habit-tracker">Habit Tracker</Link>
+          <Link to="/#education">Edukasi</Link>
         </div>
 
         <div className="footer-column">
           <h4>Komunitas</h4>
-          <a href="/auth">Daftar</a>
-          <a href="/auth">Masuk</a>
+          <Link to="/auth">Daftar</Link>
+          <Link to="/auth">Masuk</Link>
         </div>
 
         <div className="footer-column">
           <h4>Bantuan</h4>
-          <a href="#faq">FAQ</a>
-          <a href="#">Kebijakan Privasi</a>
-          <a href="#">Kontak Kami</a>
+          <Link to="/#faq">FAQ</Link>
+          <Link to="/privasi">Kebijakan Privasi</Link>
+          <Link to="/kontak">Kontak Kami</Link>
         </div>
       </div>
 
@@ -45,5 +46,4 @@ function Footer() {
     </footer>
   );
 }
-
 export default Footer;

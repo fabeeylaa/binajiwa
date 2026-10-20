@@ -1,0 +1,109 @@
+.privacy-page {
+  min-height: 100vh;
+  padding: 2rem 1.5rem 4rem;
+  background: linear-gradient(135deg, var(--mint-100), var(--surface-bright));
+}
+
+.privacy-container {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 2.5rem;
+  border-radius: var(--radius-lg);
+  background: #fff;
+  box-shadow: var(--shadow-lg);
+  line-height: 1.7;
+  color: var(--on-surface-variant);
+}
+
+.privacy-container h1 {
+  margin: 1.25rem 0 0.25rem;
+  color: var(--on-surface);
+}
+
+.privacy-container h2 {
+  margin: 2rem 0 0.5rem;
+  font-size: 1.15rem;
+  color: var(--on-surface);
+}
+
+.privacy-container ul {
+  margin: 0.5rem 0 0 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.privacy-container a {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.privacy-updated {
+  margin-bottom: 1.25rem;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+@media (max-width: 600px) {
+  .privacy-container {
+    padding: 1.5rem;
+  }
+}
+
+.contact-email-box {
+  margin: 0.75rem 0 1rem;
+  padding: 0.9rem 1.1rem;
+  border-radius: var(--radius-md);
+  background: var(--mint-100);
+  color: var(--on-surface);
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.contact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.contact-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.7rem 1.25rem;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.contact-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.privacy-container a.contact-btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+
+.privacy-container a.contact-btn-outline {
+  border: 1.5px solid var(--primary);
+  color: var(--primary);
+  background: #fff;
+}
+
+.contact-hint {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+button.contact-btn-outline {
+  border: 1.5px solid var(--primary);
+  color: var(--primary);
+  background: #fff;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+}

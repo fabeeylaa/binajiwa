@@ -2503,3 +2503,47 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ===== Tombol utama: hijau di seluruh dashboard ===== */
+.btn-primary {
+  background: #1fa35c;
+  color: #fff;
+  border: none;
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #15803d;
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(21, 128, 61, 0.35);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+button.btn.btn-primary,
+.btn-primary {
+  background: #1fa35c !important;
+  background-image: none !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+button.btn.btn-primary:hover:not(:disabled),
+.btn-primary:hover:not(:disabled) {
+  background: #15803d !important;
+}
+
+button.btn.btn-primary:disabled,
+.btn-primary:disabled {
+  background: #1fa35c !important;
+  opacity: 0.5;
+  cursor: not-allowed;
+}
