@@ -101,7 +101,7 @@
 
 @media (max-width: 768px) {
   .navbar {
-    padding: 0.85rem var(--margin-mobile);
+    padding: 0.85rem 1.25rem;
   }
 
   .navbar-menu,
@@ -111,6 +111,7 @@
 
   .navbar-burger {
     display: flex;
+    flex-shrink: 0;
   }
 
   .navbar-menu.open {

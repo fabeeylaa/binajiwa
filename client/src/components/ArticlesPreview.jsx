@@ -1,4 +1,4 @@
-import { ArrowRight, Clock, Sparkle } from "lucide-react";
+import { ArrowRight, Clock } from "lucide-react";
 import "./ArticlesPreview.css";
 import tipsImg from "../assets/tips.jpg";
 import makananImg from "../assets/makanan.jpg";
@@ -30,10 +30,9 @@ function ArticlesPreview() {
     <section className="articles-preview" id="education">
       <div className="articles-container">
         <div className="articles-header">
-          <div className="header-badge">
-            <Sparkle size={14} fill="currentColor" className="badge-icon" />
-            <span className="preview-label">Artikel & Edukasi</span>
-          </div>
+        <div className="header-badge">
+          <span className="preview-label">Artikel & Edukasi</span>
+        </div>
           <h2 className="preview-title">
             Ruang kecil untuk pikiran yang <span>lebih tenang.</span>
           </h2>
@@ -43,10 +42,10 @@ function ArticlesPreview() {
           </p>
           <div className="articles-actions">
             <a href="/auth" className="btn-explore">
-              Jelajahi Artikel <ArrowRight size={18} />
+              Jelajahi Artikel
             </a>
             <a href="/auth" className="btn-topics">
-              Lihat topik <ArrowRight size={16} />
+              Lihat topik
             </a>
           </div>
         </div>

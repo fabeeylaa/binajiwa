@@ -51,10 +51,6 @@
   box-shadow: 0 4px 12px rgba(34, 197, 94, 0.05);
 }
 
-.badge-icon {
-  color: var(--primary);
-}
-
 .preview-label {
   font-family: "Plus Jakarta Sans", sans-serif;
   font-size: 13px;

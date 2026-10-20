@@ -2,6 +2,7 @@
   background: var(--surface);
   padding: var(--section-gap) var(--gutter);
   position: relative;
+  overflow: hidden;
 }
 
 .why::before {
