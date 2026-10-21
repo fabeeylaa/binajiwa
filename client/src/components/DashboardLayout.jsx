@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './DashboardLayout.css';
 import logoBinaJiwa from '../assets/Logoobinajiwa.jpeg';
+import NotificationBell from './NotificationBell';
 
 function DashboardLayout({ user, children, menuItems }) {
   const navigate = useNavigate();
@@ -97,6 +98,7 @@ function DashboardLayout({ user, children, menuItems }) {
       </aside>
 
       <main className="main">
+        {user?.role !== 'admin' && <NotificationBell />}
         <div className="mobile-topbar">
            <button
             className="burger-btn"

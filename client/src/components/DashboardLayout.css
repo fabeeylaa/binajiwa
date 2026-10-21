@@ -253,6 +253,7 @@
 @media (max-width: 900px) {
   .mobile-topbar {
     display: flex;
+    padding-right: 60px; /* ruang untuk ikon lonceng */
   }
 
   .sidebar {

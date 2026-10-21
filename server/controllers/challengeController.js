@@ -1,4 +1,5 @@
 import pool from "../config/db.js";
+import { createNotificationsForMany } from "../services/notificationService.js";
 
 // Satu query untuk semua data challenge + progres milik user yang sedang login.
 const CHALLENGE_SELECT = `
@@ -186,6 +187,60 @@ export const checkinChallenge = async (req, res) => {
        ON CONFLICT (challenge_id, user_id, checkin_date) DO NOTHING`,
       [id, userId]
     );
+
+    // Kirim notifikasi ke teman yang juga ikut challenge yang sama.
+    try {
+      const challengeRes = await pool.query(
+        "SELECT title FROM challenges WHERE id = $1",
+        [id]
+      );
+      const title = challengeRes.rows[0]?.title || "Challenge";
+
+      // Peserta challenge lain (bukan diri sendiri).
+      const participantsRes = await pool.query(
+        `SELECT user_id FROM challenge_participants
+         WHERE challenge_id = $1 AND user_id <> $2`,
+        [id, userId]
+      );
+      const otherParticipants = participantsRes.rows.map((r) => r.user_id);
+
+      // Filter hanya yang berteman (accepted) dengan user yang check-in.
+      let recipients = [];
+      if (otherParticipants.length > 0) {
+        const friendsRes = await pool.query(
+          `SELECT addressee_id AS friend_id FROM friendships
+           WHERE requester_id = $1 AND status = 'accepted'
+             AND addressee_id = ANY($2)
+           UNION
+           SELECT requester_id AS friend_id FROM friendships
+           WHERE addressee_id = $1 AND status = 'accepted'
+             AND requester_id = ANY($2)`,
+          [userId, otherParticipants]
+        );
+        recipients = friendsRes.rows.map((r) => r.friend_id);
+      }
+
+      if (recipients.length > 0) {
+        const actorRes = await pool.query(
+          "SELECT name, username FROM users WHERE id = $1",
+          [userId]
+        );
+        const actor = actorRes.rows[0] || {};
+        const actorName = actor.name || actor.username || "Seorang teman";
+
+        await createNotificationsForMany({
+          userIds: recipients,
+          actorId: userId,
+          type: "challenge_checkin",
+          title: "Check-in challenge baru",
+          message: `${actorName} baru saja check-in di challenge "${title}"`,
+          link: "/dashboard/social",
+          data: { challenge_id: parseInt(id, 10), challenge_title: title },
+        });
+      }
+    } catch (err) {
+      console.error("Gagal mengirim notifikasi check-in:", err);
+    }
 
     res.status(201).json(await fetchOne(id, userId));
   } catch (err) {

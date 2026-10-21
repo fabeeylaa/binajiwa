@@ -1,5 +1,6 @@
 import pool from "../config/db.js";
 import { calculateStreak } from "../utils/streak.js";
+import { createNotification } from "../services/notificationService.js";
 
 export const addFriend = async (req, res) => {
   const { identifier } = req.body; // bisa email atau username
@@ -57,6 +58,26 @@ export const addFriend = async (req, res) => {
       "INSERT INTO friendships (requester_id, addressee_id) VALUES ($1, $2) RETURNING *",
       [requesterId, addresseeId],
     );
+
+    // Notifikasi ke penerima request
+    try {
+      const actorRes = await pool.query(
+        "SELECT name, username FROM users WHERE id = $1",
+        [requesterId]
+      );
+      const actor = actorRes.rows[0] || {};
+      await createNotification({
+        userId: addresseeId,
+        actorId: requesterId,
+        type: "friend_request",
+        title: "Permintaan pertemanan baru",
+        message: `${actor.name || actor.username || "Seseorang"} mengirim permintaan pertemanan`,
+        link: "/dashboard/social",
+        data: { friendship_id: result.rows[0].id },
+      });
+    } catch (err) {
+      console.error("Gagal mengirim notifikasi pertemanan:", err);
+    }
 
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -166,10 +187,45 @@ export const respondFriend = async (req, res) => {
 
     const result = await pool.query(
       "UPDATE friendships SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *",
-      [newStatus, id],
+      [newStatus, id]
     );
 
+    // Tandai notifikasi permintaan pertemanan ini sebagai terbaca.
+    try {
+      await pool.query(
+        `UPDATE notifications
+         SET is_read = TRUE
+         WHERE user_id = $1 AND type = 'friend_request' AND data->>'friendship_id' = $2`,
+        [userId, id]
+      );
+    } catch (err) {
+      console.error("Gagal tandai baca notifikasi:", err);
+    }
+
     res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Terjadi kesalahan server" });
+  }
+};
+
+export const deleteFriend = async (req, res) => {
+  const { id } = req.params; // friendship id
+  const userId = req.user.id;
+
+  try {
+    const result = await pool.query(
+      `DELETE FROM friendships
+       WHERE id = $1 AND (requester_id = $2 OR addressee_id = $2)
+       RETURNING *`,
+      [id, userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Pertemanan tidak ditemukan" });
+    }
+
+    res.status(200).json({ message: "Teman berhasil dihapus" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Terjadi kesalahan server" });
