@@ -1,6 +1,3 @@
--- 017_create_notifications.sql
--- Notifikasi terpadu (riwayat): permintaan pertemanan, check-in challenge, dll.
--- Aman dijalankan berulang kali.
 CREATE TABLE IF NOT EXISTS notifications (
   id SERIAL PRIMARY KEY,
   user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
