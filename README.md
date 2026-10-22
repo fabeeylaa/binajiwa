@@ -171,11 +171,11 @@ Semua endpoint berawalan `/api` dan, kecuali yang disebut publik, membutuhkan lo
 
 | Nama | Peran | Kontak |
 | --- | --- | --- |
-| Fabiana Nesya Al Kayla | Backend Developer & DevOps | nesyakelaa@gmail.com |
-| Qois Daffa Abdullah | Backend & Database Developer | qdaffaabdullah@gmail.com |
-| Maelani | UI/UX Designer & Frontend Developer | maelani.my@gmail.com |
-| Handyka Dwi Setiawan | UI/UX Designer & Frontend Developer | hansz14022@gmail.com |
-| Hanif Syuhada | System Analyst | hanifsyuhada2311@gmail.com |
+| Fabiana Nesya Al Kayla | Backend Developer & DevOps | https://github.com/fabeeylaa |
+| Qois Daffa Abdullah | Backend & Database Developer | https://github.com/DdullBedull |
+| Maelani | UI/UX Designer & Frontend Developer | https://github.com/maelanimy-glitch |
+| Handyka Dwi Setiawan | UI/UX Designer & Frontend Developer | https://github.com/Hanhenhon |
+| Hanif Syuhada | System Analyst | https://github.com/Hnfsyhda1 |
 
 
 <div align="center">
