@@ -10,10 +10,13 @@ export function SocketProvider({ children }) {
   const socketRef = useRef(null);
 
   useEffect(() => {
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+    const isDev = import.meta.env.DEV;
+    const backendUrl = isDev
+      ? import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
+      : undefined;
     const socket = io(backendUrl, {
       withCredentials: true,
-      transports: ['websocket', 'polling'],
+      transports: isDev ? ['websocket', 'polling'] : ['polling'],
     });
     socketRef.current = socket;
 
