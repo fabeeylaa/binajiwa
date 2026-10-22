@@ -8,7 +8,7 @@
 
 Skrining mandiri, pelacak kebiasaan, edukasi, dan fitur sosial dalam satu tempat.
 
-[Demo Langsung](ISI_LINK_DEMO_DI_SINI) · [Laporkan Masalah](../../issues)
+[Demo Langsung](binajiwa.vercel.app) · [Laporkan Masalah](../../issues)
 
 </div>
 
