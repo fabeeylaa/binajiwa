@@ -177,11 +177,6 @@ Semua endpoint berawalan `/api` dan, kecuali yang disebut publik, membutuhkan lo
 | Handyka Dwi Setiawan | UI/UX Designer & Frontend Developer | hansz14022@gmail.com |
 | Hanif Syuhada | System Analyst | hanifsyuhada2311@gmail.com |
 
-## Lisensi
-
-<!-- Pilih lisensi (misalnya MIT) dan tambahkan file LICENSE, atau hapus bagian ini. -->
-
----
 
 <div align="center">
 Dibuat untuk kesehatan mental mahasiswa Indonesia.
