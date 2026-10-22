@@ -26,3 +26,6 @@ Thumbs.db
 
 .agents/
 server/uploads/
+
+server/uploads/avatars/*
+!server/uploads/avatars/.gitkeep
